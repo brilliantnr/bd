@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.board.web.board.BoardMapper">
+<resultMap type="map" id="board">
+	<result property="num" column="NUM"/>
+	<result property="title" column="TITLE"/>
+	<result property="content" column="CONTENT"/>
+	<result property="writer" column="WRITER"/>
+	<result property="pw" column="PW"/>
+	<result property="regidate" column="REGIDATE"/>
+</resultMap>
+
+<insert id="insertBoard">
+	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW) 
+	VALUES (#{title}, #{content} ,#{writer},#{pw});
+</insert>
+<select id="listBoard"  resultMap="board">
+	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE 
+	FROM (
+		SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, A.*
+		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
+		<if test="keyword!='undefined' and keyword!=''">
+		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T
+	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
+</select>
+<!-- 
+<select id="listBoard"  resultMap="board">
+	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE 
+	FROM (
+		SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, A.*
+		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
+		<if test="keyword!='undefined' and keyword!=''">
+		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T
+	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
+</select> -->
+
+<select id="detailBoard" resultType="com.board.web.board.Board">
+	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE 
+	FROM T_BOARD
+	WHERE NUM LIKE #{num}
+</select>
+
+
+
+<select id="countTotalContents" resultType="int">
+	SELECT COUNT(*) AS COUNT  
+	FROM T_BOARD 
+	<if test="keyword!='undefined' and keyword!=''">
+		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
+	</if>
+</select>
+<update id="updateBoard">
+	UPDATE T_BOARD 
+	SET TITLE = #{title},
+		CONTENT = #{content},
+		WRITER = #{writer},
+		PW = #{pw}
+	WHERE NUM = #{num};
+</update>
+
+<delete id="deleteBoard">
+	DELETE FROM T_BOARD 
+	WHERE NUM =#{num};
+</delete>
+
+
+</mapper>
