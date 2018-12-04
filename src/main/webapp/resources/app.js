@@ -45,12 +45,37 @@ app.service=(()=>{
 		});
 		*/
 		$('#list_btn').click(e=>{
-			console.log('리스트 버튼 클릭');
-			$('#wrapper').empty();
+			console.log('----------------리스트 버튼 클릭');
+			//app.button.toList();
+			
+			
+			/*$('#wrapper').empty();
      		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
         	app.page.listBrd();
-     		list({pageNum:1});
+     		list({pageNum:1});*/
+			
+			
+			
+			/*
+			$.when(
+					console.log("1. when 진입"),
+					$('#wrapper').empty()
+					,$('#wrapper').append($('<div/>').attr({id : 'contents'})),
+					console.log("2. wrapper 다 그림")
+			).done(
+					console.log("3.done 진입"),
+					app.page.listBrd(),
+					app.service.list({pageNum:1, keyword:undefined})	,
+					console.log("4. 끝")
+			);//순차적 실행
+			
+			*/
 		});
+		
+		
+		
+		
+		
 		
 		
 		//button();
@@ -155,8 +180,8 @@ app.service=(()=>{
 
 		// add 완료 버튼
 		$('#complete_btn').click(e=>{
-			let $title = $('#input_title').val();
-			let $content= $('#input_content').val();
+			let $title = $('#input_title').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
+			let $content= $('#input_content').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
 			let $writer = $('#input_writer').val();
 			let $pw = $('#input_pw').val();
 			
@@ -166,6 +191,7 @@ app.service=(()=>{
 			console.log("$pw : "+$pw);
 			console.log("$title : "+getByteLength($('#input_title').val()) + " Bytes");
 			console.log("$content : "+getByteLength($content) + " Bytes");
+			
 			
 			//유효성 검사
 			let isValid= app.valid.isValid();
@@ -208,6 +234,9 @@ app.service=(()=>{
 			 
 		});
 		
+		/*let $title = $('#input_title').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
+		let $content= $('#input_content').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
+*/		
 		console.log("=====update 페이지 진입 ===== ");
 		$('#input_title').val(x.title);
 		$('#input_writer').val(x.writer);
@@ -228,8 +257,8 @@ app.service=(()=>{
 		             contentType : 'application/json',
 		             data : JSON.stringify({
 		            	 num : x.num,
-		            	 title : $('#input_title').val(),
-		            	 content :$('#input_content').val(),
+		            	 title : $('#input_title').val().replace(/(<([^>]+)>)/ig,""),
+		            	 content :$('#input_content').val().replace(/(<([^>]+)>)/ig,""),
 		            	 writer :$('#input_writer').val(), 
 		            	 pw : $('#input_pw').val(),
 		             }),
@@ -261,10 +290,11 @@ app.service=(()=>{
 		// 상세 게시글 버튼 모음 ====================================
 		$('#list_btn').click(e=>{
 			console.log('리스트 버튼 클릭');
-			$('#wrapper').empty();
+			//app.button.toList();
+			/*$('#wrapper').empty();
      		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
         	app.page.listBrd();
-     		list({pageNum:1});
+     		list({pageNum:1});*/
 		});
 		
 		// 수정 버튼 클릭시 =========================================================
@@ -322,10 +352,11 @@ app.service=(()=>{
 					             success : d=>{
 					            	 alert('삭제완료');
 					            	 console.log('삭제완료');
-					            	 $('#wrapper').empty();
+					            	 //app.button.toList();
+					            	/* $('#wrapper').empty();
 					          		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
 					             	app.page.listBrd();
-					          		app.service.list({pageNum:1});
+					          		app.service.list({pageNum:1});*/
 					             }
 					           });
 						}
@@ -344,18 +375,50 @@ app.service=(()=>{
 			};
 })();
 
+
+
+
+/*
 app.button=(()=>{
+	
 	var toList=()=>{
 		console.log('-------app.button.toList 리스트 버튼 클릭-----');
 		$('#wrapper').empty();
  		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
-    	app.page.listBrd();
- 		app.service.list({pageNum:1});
+ 		app.page.listBrd();
+	 	app.service.list({pageNum:1});
+ 		
+ 		
+ 		$('#contents').onload(
+ 				alert("22"),
+ 				app.page.listBrd(),
+ 		 		app.service.list({pageNum:1})
+ 		 		,alert("33")
+ 		);
+ 		
+ 		$('#contents').on("load",function(){
+ 			app.page.listBrd();
+	 		app.service.list({pageNum:1});
+ 		});
+ 		
+ 		
+ 		(app.page.listBrd(),
+ 		 		app.service.list({pageNum:1})
+ 		 		).appendTo($('#contents'));
+ 		
+ 		
+ 		$('#contents').onload(
+ 				alert("22"),
+ 				app.page.listBrd(),
+ 		 		app.service.list({pageNum:1})
+ 		 		,alert("33")
+ 		);
+    	
 	};
 	return {toList:toList};
 })();
 
-
+*/
 app.valid=(()=>{
 	var isValid=()=>{
 		let vd = false;
@@ -409,6 +472,14 @@ app.valid=(()=>{
 	};
 })();
 
+/* 처음으로 버튼
+*/
+$(document).on("click","#list_btn",function(){
+	$('#wrapper').empty();
+	$('#wrapper').append($('<div/>').attr({id : 'contents'}));
+	app.page.listBrd();
+ 	app.service.list({pageNum:1});
+});
 
 
 
@@ -418,6 +489,7 @@ app.valid=(()=>{
 // 페이지 구성 =============================================================================================================
 app.page=(()=>{
 	var fisrt=()=>{
+
 		$('#wrapper').empty();
  		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
     	app.page.listBrd();
@@ -435,7 +507,7 @@ app.page=(()=>{
 		$('<thead/>').attr({id:"board_thead"}).appendTo('#board_table');
 		$('<th/>').attr({style:"width:10%; text-align: center;"}).append($('<span/>').html("NO")).appendTo('#board_thead');
 		$('<th/>').attr({style:"width:60%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; "}).append($('<span/>').html("제목")).appendTo('#board_thead');
-		$('<th/>').attr({style:"width:15%; text-align: center;"}).append($('<span/>').html("작성자")).appendTo('#board_thead');
+		$('<th/>').attr({style:"width:20%%; text-align: center;"}).append($('<span/>').html("작성자")).appendTo('#board_thead');
 		$('<th/>').attr({style:"text-align: center;"}).append($('<span/>').html("작성일자")).appendTo('#board_thead');
 		$('<tbody>').attr({id:"tbody_list"}).appendTo('#board_table');
 		
@@ -444,7 +516,7 @@ app.page=(()=>{
 		
 		
 		/*			+'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'*/
-		$('<button/>').attr({id:"list_btn"}).html("목록보기").addClass("btn btn-default pull-left").appendTo($('#list_row'));
+		$('<button/>').attr({id:"list_btn"}).html("처음으로").addClass("btn btn-default pull-left").appendTo($('#list_row'));
 		//글쓰기
 		$('<button/>').attr({id:"write_btn"}).html("글쓰기").addClass("btn btn-default pull-right").appendTo('#list_row')
 		.click(e=>{
