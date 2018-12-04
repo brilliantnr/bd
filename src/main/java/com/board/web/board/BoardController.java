@@ -88,13 +88,18 @@ public class BoardController {
 		logger.info("p : "+p);
 		mapper.updateBoard(p);
 	}
-	@DeleteMapping("/delete")
+	/*@DeleteMapping("/delete")
+	public void deleteBrd(@RequestBody Map<String,Object> p){
+		logger.info(" deleteBrd() 진입");
+		logger.info("p : "+p);
+		mapper.deleteBoard(p);
+	}*/
+	@PutMapping("/delete")
 	public void deleteBrd(@RequestBody Map<String,Object> p){
 		logger.info(" deleteBrd() 진입");
 		logger.info("p : "+p);
 		mapper.deleteBoard(p);
 	}
-	
 	
 	@PostMapping("/valid/{pwInput}")
 	public Map<String, Object> confirmPw(@RequestBody Map<String,Object> p){

@@ -11,6 +11,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<result property="writer" column="WRITER"/>
 	<result property="pw" column="PW"/>
 	<result property="regidate" column="REGIDATE"/>
+	<result property="checkdelete" column="CHECKDELETE"/>
 </resultMap>
 
 <insert id="insertBoard">
@@ -18,12 +19,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	VALUES (#{title}, #{content} ,#{writer},#{pw});
 </insert>
 <select id="listBoard"  resultMap="board">
-	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE 
+	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
 	FROM (
 		SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, A.*
 		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
 		<if test="keyword!='undefined' and keyword!=''">
 		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
+		<!-- AND CHECKDELETE != 'Y' -->
 		</if>
 		ORDER BY NUM DESC
 		) T
@@ -66,11 +68,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		PW = #{pw}
 	WHERE NUM = #{num};
 </update>
-
+<!-- 
 <delete id="deleteBoard">
 	DELETE FROM T_BOARD 
 	WHERE NUM =#{num};
-</delete>
-
+</delete> -->
+<update id="deleteBoard">
+	UPDATE T_BOARD
+	SET CHECKDELETE ="Y"
+	WHERE NUM =#{num};
+</update>
 
 </mapper>

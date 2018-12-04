@@ -38,77 +38,39 @@ app.service=(()=>{
 		console.log('list 시작');
 		$('tbody').empty();
 		$('#pagination').remove();
-		//$('#wrapper').append(app.page.listBrd());
-		
-		/*$('#list_btn').click(e=>{
-			app.button.toList();
-		});
-		*/
-		$('#list_btn').click(e=>{
-			console.log('----------------리스트 버튼 클릭');
-			//app.button.toList();
-			
-			
-			/*$('#wrapper').empty();
-     		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
-        	app.page.listBrd();
-     		list({pageNum:1});*/
-			
-			
-			
-			/*
-			$.when(
-					console.log("1. when 진입"),
-					$('#wrapper').empty()
-					,$('#wrapper').append($('<div/>').attr({id : 'contents'})),
-					console.log("2. wrapper 다 그림")
-			).done(
-					console.log("3.done 진입"),
-					app.page.listBrd(),
-					app.service.list({pageNum:1, keyword:undefined})	,
-					console.log("4. 끝")
-			);//순차적 실행
-			
-			*/
-		});
-		
-		
-		
-		
-		
-		
-		
-		//button();
 		console.log('step3: app.service.list 진입');
-		console.log('x.pageNum : '+x.pageNum);
-		console.log('x.keyword : '+x.keyword);
+		console.log('list x.pageNum : '+x.pageNum);
+		console.log('list x.keyword : '+x.keyword);
 		//getJSON START========================================================================================================
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
-			console.log("getJSON 시작");
-			
+			console.log("list getJSON 시작");
 			$.each(d.list,(i,j)=>{
-				
-				let transTime=x=>{	
-					let year=new Date(x).getFullYear();
-					let month=new Date(x).getMonth()+1;
-					let day=new Date(x).getDate();
-					/*let hour=new Date(x).getHours();
-					let min=new Date(x).getMinutes();
-					let sec=new Date(x).getSeconds();*/
+				if(j.checkdelete=="Y"){
+					j.title="원글이 삭제되었습니다";
+					j.writer="";
+					j.regidate="";
+				}else{
 					
-					let result=year+"-"+
-								(month<10?"0"+month:month)
-								+"-"+(day<10? "0"+day :day)
-							/*	+" "+(hour < 10 ? "0" + hour : hour) + ":"
-		                        + (min < 10 ? "0" + min : min) + ":" 
-		                        + (sec < 10 ? "0" + sec : sec);*/
-					return result; 
+					let transTime=x=>{
+						let year=new Date(x).getFullYear();
+						let month=new Date(x).getMonth()+1;
+						let day=new Date(x).getDate();
+						/*let hour=new Date(x).getHours();
+						let min=new Date(x).getMinutes();
+						let sec=new Date(x).getSeconds();*/
+						let result=year+"-"+(month<10?"0"+month:month)+"-"+(day<10? "0"+day :day)
+								/*	+" "+(hour < 10 ? "0" + hour : hour) + ":"
+			                        + (min < 10 ? "0" + min : min) + ":" 
+			                        + (sec < 10 ? "0" + sec : sec);*/
+						return result; 
+					};
+					j.regidate = transTime(j.regidate);
 				};
+				//console.log(j.checkdelete+" , "+j.title+" , "+j.writer+" , "+j.regidate);
 				
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+j.num ,style:"text-align: center;"}).html(j.num),
-						$('<td/>').append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title)
-								.click(e=>{
+						$('<td/>').append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									let $num = $('#num_'+j.num).html();
 									console.log("클릭 후 : "+$('#num_'+j.num).html());
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
@@ -118,8 +80,28 @@ app.service=(()=>{
 						})
 						),
 						$('<td/>').attr({style:"text-align: center;"}).html(j.writer),
-						$('<td/>').attr({style:"text-align: center;"}).html(transTime(j.regidate))
+						$('<td/>').attr({style:"text-align: center;"}).html(j.regidate)
 				).appendTo($('#tbody_list'));
+				
+				//원글 삭제시 a태그 비활성화
+				if(j.checkdelete=="Y"){
+					$('#title_'+j.num).css({ 'pointer-events': 'none', 'color': 'black'});
+				};
+				
+				
+				
+				/*$('<tr/>').attr({id:"tr_list"}).appendTo($('#tbody_list'));
+					$('<td/>').attr({id:"num_"+j.num ,style:"text-align: center;"}).html(j.num).appendTo($('#tr_list'));
+					$('<td/>').append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
+						let $num = $('#num_'+j.num).html();
+						console.log("클릭 후 : "+$('#num_'+j.num).html());
+						$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
+							detail($num);
+						});
+					})
+					).appendTo($('#tr_list'));
+					$('<td/>').attr({style:"text-align: center;"}).html(j.writer).appendTo($('#tr_list'));
+					$('<td/>').attr({style:"text-align: center;"}).html(j.regidate).appendTo($('#tr_list'));*/
 			});
 
 			 //페이지네이션  구성 시작
@@ -166,23 +148,15 @@ app.service=(()=>{
 	};
 	var add=()=>{
 		$('#wrapper').html(app.page.inputBrd());
-		//리스트로 이동
-		$('#list_btn').click(e=>{
-			console.log('리스트 버튼 클릭');
-			$('#wrapper').empty();
-     		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
-        	app.page.listBrd();
-     		list({pageNum:1});
-		});
-		
+
 		//입력 즉시 공백체크
 		app.valid.blankValid(); 
 
 		// add 완료 버튼
 		$('#complete_btn').click(e=>{
-			let $title = $('#input_title').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
+			let $title = $('#input_title').val().replace(/(<([^>]+)>)/ig,"").trim(); //태그입력방지
 			let $content= $('#input_content').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
-			let $writer = $('#input_writer').val();
+			let $writer = $('#input_writer').val().trim();
 			let $pw = $('#input_pw').val();
 			
 			console.log("$title : "+$title);
@@ -224,15 +198,6 @@ app.service=(()=>{
 	};
 	var update=x=>{
 		$('#wrapper').html(app.page.inputBrd());
-		//목록가기
-		$('#list_btn').click(e=>{
-			console.log('리스트 버튼 클릭');
-			$('#wrapper').empty();
-     		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
-        	app.page.listBrd();
-     		list({pageNum:1});
-			 
-		});
 		
 		/*let $title = $('#input_title').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
 		let $content= $('#input_content').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
@@ -277,7 +242,6 @@ app.service=(()=>{
 	var detail=x=>{
 		$('#wrapper').html(app.page.detailBrd());
 		
-		//상세 게시글 getJSON START====================================
 		$.getJSON($.ctx()+'/board/detail/'+x,d=>{
 			console.log('d.detail : '+d.detail.title);
 			$('#td_content1').html(d.detail.num);
@@ -285,17 +249,8 @@ app.service=(()=>{
 			$('#td_content3').html(d.detail.writer);
 			$('#td_content4').html(d.detail.content);
 		});
-		//상세 게시글 getJSON END ====================================
 		
-		// 상세 게시글 버튼 모음 ====================================
-		$('#list_btn').click(e=>{
-			console.log('리스트 버튼 클릭');
-			//app.button.toList();
-			/*$('#wrapper').empty();
-     		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
-        	app.page.listBrd();
-     		list({pageNum:1});*/
-		});
+		
 		
 		// 수정 버튼 클릭시 =========================================================
 		$('#update_btn').click(e=>{
@@ -344,19 +299,19 @@ app.service=(()=>{
 							alert('비밀번호 일치');
 							$.ajax({
 					             url : $.ctx()+'/board/delete',
-					             method : 'delete',
+					             method : 'put',
 					             contentType : 'application/json',
 					             data : JSON.stringify({
 					            	 num : $num
 					             }),
 					             success : d=>{
-					            	 alert('삭제완료');
-					            	 console.log('삭제완료');
-					            	 //app.button.toList();
-					            	/* $('#wrapper').empty();
+					            	alert('삭제완료');
+					            	 
+					            	//메인화면으로 이동 
+					            	$('#wrapper').empty();
 					          		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
 					             	app.page.listBrd();
-					          		app.service.list({pageNum:1});*/
+					          		app.service.list({pageNum:1});
 					             }
 					           });
 						}
@@ -375,73 +330,35 @@ app.service=(()=>{
 			};
 })();
 
-
-
-
-/*
-app.button=(()=>{
-	
-	var toList=()=>{
-		console.log('-------app.button.toList 리스트 버튼 클릭-----');
-		$('#wrapper').empty();
- 		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
- 		app.page.listBrd();
-	 	app.service.list({pageNum:1});
- 		
- 		
- 		$('#contents').onload(
- 				alert("22"),
- 				app.page.listBrd(),
- 		 		app.service.list({pageNum:1})
- 		 		,alert("33")
- 		);
- 		
- 		$('#contents').on("load",function(){
- 			app.page.listBrd();
-	 		app.service.list({pageNum:1});
- 		});
- 		
- 		
- 		(app.page.listBrd(),
- 		 		app.service.list({pageNum:1})
- 		 		).appendTo($('#contents'));
- 		
- 		
- 		$('#contents').onload(
- 				alert("22"),
- 				app.page.listBrd(),
- 		 		app.service.list({pageNum:1})
- 		 		,alert("33")
- 		);
-    	
-	};
-	return {toList:toList};
-})();
-
-*/
 app.valid=(()=>{
 	var isValid=()=>{
 		let vd = false;
 		blankValid();//공백체크
 		
-		let $title = $('#input_title').val();
+		/*let $title = $.trim($('#input_title').val());
 		let $writer=$('#input_writer').val();
 		let $pw=$('#input_pw').val();
-		let $content=$('#input_content').val();
+		let $content=$('#input_content').val();*/
+		let $title = $.trim($('#input_title').val());
+		let $writer=$.trim($('#input_writer').val());
+		let $pw=$.trim($('#input_pw').val());
+		let $content=$.trim($('#input_content').val());
 		
-		if($title===''){
+		
+		//$.trim() : 앞뒤의 빈칸 제거
+		if($title===''||$title===null){
 			alert("제목을 입력하세요");
 			vd= false;
 		};
-		if($writer===''){
+		if($writer===''||$writer===null){
 			alert("작성자를 입력하세요");
 			vd= false;
 		};
-		if($pw===''){
+		if($pw===''||$pw==null){
 			alert("비밀번호를 입력하세요");
 			vd= false;
 		};
-		if($content===''){
+		if($content===''||$content==null){
 			alert("내용을 입력하세요");
 			vd= false;
 		};
@@ -472,7 +389,7 @@ app.valid=(()=>{
 	};
 })();
 
-/* 처음으로 버튼
+/* 처음으로 리스트 버튼
 */
 $(document).on("click","#list_btn",function(){
 	$('#wrapper').empty();
@@ -555,7 +472,8 @@ app.page=(()=>{
 				app.service.list({pageNum:1, keyword:$input_keyword});
 				
 			};
-
+			
+			
 			
 		}).appendTo("#in_gr_bt");
 		$('<span/>').addClass("glyphicon glyphicon-search").appendTo("#search_btn");
