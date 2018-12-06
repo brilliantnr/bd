@@ -9,4 +9,5 @@ import lombok.Data;
 public class Board {
 	private String title, content, writer, pw, regidate;
 	private int num;
+	
 }

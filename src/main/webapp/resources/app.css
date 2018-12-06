@@ -1,0 +1,7 @@
+@charset "UTF-8";
+
+.auto-enter{
+	word-break:break-all; 
+	overflow: hidden; 
+	text-overflow: ellipsis; white-space: pre-wrap;
+}

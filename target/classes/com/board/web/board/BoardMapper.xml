@@ -25,11 +25,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
 		<if test="keyword!='undefined' and keyword!=''">
 		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
-		<!-- AND CHECKDELETE != 'Y' -->
+		AND CHECKDELETE IS NULL
 		</if>
 		ORDER BY NUM DESC
 		) T
 	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
+	
 </select>
 <!-- 
 <select id="listBoard"  resultMap="board">
