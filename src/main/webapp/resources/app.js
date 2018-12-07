@@ -35,14 +35,11 @@ app.service=(()=>{
 			console.log(getByteLength("안녕하세요") + " Bytes");*/
 		
 	var list=x=>{
-		console.log('list 시작');
 		$('tbody').empty();
 		$('#pagination').remove();
 		console.log('#### app.service.list 진입 ####');
 		console.log('list x.pageNum : '+x.pageNum);
 		console.log('list x.keyword : '+x.keyword);
-		
-		
 		
 		//getJSON START========================================================================================================
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
@@ -72,18 +69,17 @@ app.service=(()=>{
 				//console.log(j.checkdelete+" , "+j.title+" , "+j.writer+" , "+j.regidate);
 				
 				$('<tr/>').append(
-						$('<td/>').attr({id:"num_"+j.num ,style:"text-align:center; width:200px;"}).html(j.num),
-						$('<td/>').addClass("auto-enter").css("width","1000px").append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
+						$('<td/>').attr({id:"num_"+j.num}).addClass("center").html(j.num),
+						$('<td/>').addClass("ellipsis").append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									let $num = $('#num_'+j.num).html();
-									console.log("클릭 후 : "+$('#num_'+j.num).html());
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
-										console.log($num);
+										console.log("detail 넘어가는 값 : "+$num);
 										detail($num);
 									});
 						})
 						),
-						$('<td/>').addClass("auto-enter").attr({style:"text-align: center;  width:500px;"}).html(j.writer),
-						$('<td/>').attr({style:"text-align: center; width:200px;"}).html(j.regidate)
+						$('<td/>').addClass("center ellipsis").html(j.writer),
+						$('<td/>').addClass("center").html(j.regidate)
 				).appendTo($('#tbody_list'));
 				
 				//원글 삭제시 a태그 비활성화
@@ -485,14 +481,14 @@ app.page=(()=>{
 		
 		/* 리스트   */
 		$('<div/>').attr({id:"list_col"}).addClass("col-md-12").appendTo($('#list_row'));
-		$('<div/>').attr({id:"list_tbl"}).addClass("table-responsive").appendTo($('#list_col'));
-		$('<table/>').attr({id:"board_table"}).addClass("table table-bordred table-striped").appendTo('#list_tbl');
-		$('<thead/>').attr({id:"board_thead"}).appendTo('#board_table');
-		$('<th/>').attr({style:" text-align: center;"}).append($('<span/>').html("NO")).appendTo('#board_thead');
-		$('<th/>').attr({style:"text-align:center;"}).append($('<span/>').html("제목")).appendTo('#board_thead');
-		$('<th/>').attr({style:" text-align: center;"}).append($('<span/>').html("작성자")).appendTo('#board_thead');
-		$('<th/>').attr({style:" text-align: center;"}).append($('<span/>').html("작성일자")).appendTo('#board_thead');
-		$('<tbody>').attr({id:"tbody_list"}).appendTo('#board_table');
+			$('<div/>').attr({id:"list_tbl"}).addClass("table-responsive").appendTo($('#list_col'));
+				$('<table/>').attr({id:"board_table"}).addClass("table table-list table-bordred table-striped").appendTo('#list_tbl');
+					$('<thead/>').attr({id:"board_thead"}).appendTo('#board_table');
+						$('<th/>').addClass("th-num").append($('<span/>').html("NO")).appendTo('#board_thead');
+						$('<th/>').addClass("th-title").append($('<span/>').html("제목")).appendTo('#board_thead');
+						$('<th/>').addClass("th-writer").append($('<span/>').html("작성자")).appendTo('#board_thead');
+						$('<th/>').addClass("th-regidate").append($('<span/>').html("작성일자")).appendTo('#board_thead');
+					$('<tbody>').attr({id:"tbody_list"}).appendTo('#board_table');
 		
 		/* ================검색 및버튼  ================*/
 		$('<div/>').attr({id:"btn_col"}).addClass("col-md-12").appendTo($('#list_row'));
@@ -570,7 +566,7 @@ app.page=(()=>{
 		                +'<tr>'
 		                  +'<td style="width: 160px; text-align: center;">글제목</td>'
 		                  +'<td colspan="2" >'
-		                  	+'<div class="auto-enter">'
+		                  	+'<div>'
 		                  		+'<input type="text" class="form-control" id="input_title" maxlength="99" style="white-space: pre-wrap;">'
 		                    +'</div>'
 		                    +'</td>'
@@ -578,7 +574,7 @@ app.page=(()=>{
 		                +'<tr>'
 		                  +'<td style="width: 160px; text-align: center;">작성자</td>'
 		                  +'<td>'
-		                  	+'<div class="auto-enter">'
+		                  	+'<div class="ellipsis">'
 		                  		+'<input type="text" class="form-control" id="input_writer" maxlength="20" >'
 		                  	+'</div >'
 		                  +'</td>'
