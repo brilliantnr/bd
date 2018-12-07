@@ -19,39 +19,27 @@ app=(()=>{
 })();
 
 app.service=(()=>{
-	
 	var init=()=>{
 		console.log('step2 : app.service.init 진입'); 
 		app.page.listBrd();
 		list({pageNum:1});
-		
 	};
-	/*//바이트 수 계산
-	var getByteLength = function(s,b,i,c){
-		  for(b=i=0; c=s.charCodeAt(i++); b+=c>>11?3:c>>7?2:1);
-		  return b;
-		};*/
-		/* console.log(getByteLength("1234567890") + " Bytes");
-			console.log(getByteLength("안녕하세요") + " Bytes");*/
-		
 	var list=x=>{
 		$('tbody').empty();
 		$('#pagination').remove();
+		/*
 		console.log('#### app.service.list 진입 ####');
-		console.log('list x.pageNum : '+x.pageNum);
-		console.log('list x.keyword : '+x.keyword);
-		
-		//getJSON START========================================================================================================
+		console.log('--list x.pageNum : '+x.pageNum);
+		console.log('--list x.keyword : '+x.keyword);
+		*/
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
-			console.log("list getJSON 시작");
 			$.each(d.list,(i,j)=>{
 				if(j.checkdelete=="Y"){
 					j.title="원글이 삭제되었습니다";
 					j.writer="";
 					j.regidate="";
 				}else{
-					
-					let transTime=x=>{
+					var transTime=x=>{
 						let year=new Date(x).getFullYear();
 						let month=new Date(x).getMonth()+1;
 						let day=new Date(x).getDate();
@@ -66,15 +54,19 @@ app.service=(()=>{
 					};
 					j.regidate = transTime(j.regidate);
 				};
-				//console.log(j.checkdelete+" , "+j.title+" , "+j.writer+" , "+j.regidate);
-				
+
+				/* NO에 역순 rownum 넣기 */
+				let listNum = d.rowCount - j.rownum + 1;
+				let $seq_num = j.num ;
+				/* 리스트 구성 
+				 * NO의 id = seqNum
+				 * */
 				$('<tr/>').append(
-						$('<td/>').attr({id:"num_"+j.num}).addClass("center").html(j.num),
+						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
 						$('<td/>').addClass("ellipsis").append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
-									let $num = $('#num_'+j.num).html();
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
-										console.log("detail 넘어가는 값 : "+$num);
-										detail($num);
+										console.log("detail 넘어가는 값 : "+$seq_num);
+										detail({seqNum : $seq_num, listNum : listNum});
 									});
 						})
 						),
@@ -82,35 +74,29 @@ app.service=(()=>{
 						$('<td/>').addClass("center").html(j.regidate)
 				).appendTo($('#tbody_list'));
 				
-				//원글 삭제시 a태그 비활성화
+				/* 원글 삭제시 a태그 비활성화 */
 				if(j.checkdelete=="Y"){
 					$('#title_'+j.num).css({ 'pointer-events': 'none', 'color': 'black'});
 				};
-				
-				
-				
-				/*$('<tr/>').attr({id:"tr_list"}).appendTo($('#tbody_list'));
-					$('<td/>').attr({id:"num_"+j.num ,style:"text-align: center;"}).html(j.num).appendTo($('#tr_list'));
-					$('<td/>').append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
-						let $num = $('#num_'+j.num).html();
-						console.log("클릭 후 : "+$('#num_'+j.num).html());
-						$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
-							detail($num);
-						});
-					})
-					).appendTo($('#tr_list'));
-					$('<td/>').attr({style:"text-align: center;"}).html(j.writer).appendTo($('#tr_list'));
-					$('<td/>').attr({style:"text-align: center;"}).html(j.regidate).appendTo($('#tr_list'));*/
 			});
 
-			 //페이지네이션  구성 시작
+			/* 페이지네이션  구성 시작 */
 			$('<div/>').attr({id:"pagination", style:"text-align: center;"}).addClass("clearfix").appendTo("#list_row");
 			$('<ul/>').addClass("pagination").attr({id:'pg_ul', style:"margin-left: auto;margin-right: auto;"}).appendTo("#pagination");
 			
 			let prev = (d.existPrev)? '': 'disabled';
 			let next = (d.existNext)? '':'disabled';
 			
-			//이전버튼
+			/* 처음버튼 */
+			$('<li/>').append(
+					$('<button/>').addClass("btn btn-default").attr({type:"button", style:"float: left;"}).append(
+							$('<span/>').html("처음").addClass("glyphicon glyphicon-chevron-left "))).click(e=>{
+								e.preventDefault();
+								console.log("처음버튼 ");
+								list({pageNum: 1, keyword:d.keyword}); 
+							}).appendTo('#pg_ul');
+	
+			/* 이전버튼 */
 			$('<li/>').addClass(prev).append(
 					$('<a href="#"/>').append(
 							$('<span/>').addClass("glyphicon glyphicon-chevron-left "))).click(e=>{
@@ -143,16 +129,25 @@ app.service=(()=>{
 								};
 							}).appendTo('#pg_ul');
 			
+			/* 마지막페이지버튼 */
+			$('<li/>').append(
+					$('<button/>').addClass("btn btn-default").attr({type:"button"}).append(
+							"마지막",
+							$('<span/>').addClass("glyphicon glyphicon-chevron-right "))).click(e=>{
+								e.preventDefault();
+								console.log("마지막버튼 ");
+								list({pageNum: d.lastPage, keyword:d.keyword}); 
+							}).appendTo('#pg_ul');
 		});
-		//getJSON END========================================================================================================
 	};
 	var add=()=>{
 		$('#wrapper').html(app.page.inputBrd());
 		app.page.fileUpload();
 		
-		app.valid.blankValid(); //입력 즉시 공백체크
+		/* 입력 즉시 공백체크 */
+		app.valid.blankValid();
 		
-		//글자수 세기
+		/* 글자수 세기 */
 		$('#count_geul').html("0");
 		app.fn.countText(); 
 		
@@ -162,21 +157,18 @@ app.service=(()=>{
 			let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
 			let $writer = $('#input_writer').val().trim();
 			let $pw = $('#input_pw').val();
+			
 			/*let $title = $('#input_title').val().replace(/(<([^>]+)>)/ig,"").trim(); //태그입력방지
 			let $content= $('#input_content').val().replace(/(<([^>]+)>)/ig,""); //태그입력방지
 		 	*/
 			console.log("$title : "+$title);
-			console.log("$content : "+$content);
 			console.log("$writer : "+$writer);
 			console.log("$pw : "+$pw);
-			//console.log("$title : "+getByteLength($('#input_title').val()) + " Bytes");
-			//console.log("$content : "+getByteLength($content) + " Bytes");
 			
-			
-			//유효성 검사
+			/* 유효성 검사 */
 			let $isValid= app.valid.isValid();
 			if($isValid){
-				console.log("널값 없음");
+				console.log("유효성 검사 통과");
 				$.ajax({
 		             url : $.ctx()+'/board/add',
 		             method : 'post',
@@ -197,25 +189,24 @@ app.service=(()=>{
 		           });
 				
 			};
-			
-			
 		});
-		
 	};
 	var update=x=>{
+		console.log("=====update 페이지 진입 ===== ");
 		$('#wrapper').html(app.page.inputBrd());
 		
-		console.log("=====update 페이지 진입 ===== ");
+		console.log("id가져오기");
+		let seq = $('#input_title');
+		
 		$('#input_title').val(x.title);
 		$('#input_writer').val(x.writer);
 		$('#input_content').html(x.content);
 		
-		//입력 즉시 공백체크
+		/* 입력 즉시 공백체크 */
 		app.valid.blankValid(); 
 		
-		//글자수 세기
+		/* 글자수 세기 */
 		$('#count_geul').html(x.content.length);
-		console.log("x.content.length : "+x.content.length);
 		app.fn.countText(); 
 		
 		//수정 완료 버튼
@@ -225,9 +216,8 @@ app.service=(()=>{
 			let $writer = $('#input_writer').val().trim();
 			let $pw = $('#input_pw').val();
 			
-			console.log("=====update complete_btn 클릭 ===== ");
+			/* 유효성 검사 */
 			let v = app.valid.isValid();
-			console.log("update v : "+v);
 			if(v){
 				 $.ajax({
 		             url : $.ctx()+'/board/update',
@@ -254,34 +244,34 @@ app.service=(()=>{
 	
 	var detail=x=>{
 		$('#wrapper').html(app.page.detailBrd());
-		
-		$.getJSON($.ctx()+'/board/detail/'+x,d=>{
-			console.log('d.detail : '+d.detail.title);
-			$('#td_content1').html(d.detail.num);
+		var $seqNum = x.seqNum;
+		$.getJSON($.ctx()+'/board/detail/'+$seqNum,d=>{
+			$('#td_content1').html(x.listNum);
 			$('#td_content2').html(d.detail.title);
 			$('#td_content3').html(d.detail.writer);
 			$('#td_content4').html(d.detail.content);
 		});
 		
-		
-		
 		// 수정 버튼 클릭시 =========================================================
 		$('#update_btn').click(e=>{
 			console.log("update_btn 클릭");
-			validation("updateBrd");
+			validation({seqNum:$seqNum, move:"updateBrd"});
 		});
 		$('#delete_btn').click(e=>{
 			console.log("delete_btn 클릭");
-			validation("deleteBrd");
+			validation({seqNum:$seqNum, move:"deleteBrd"});
 		});
 		
 	};
 	var validation=x=>{
+		/* @param x.seqNum
+		 * @param x.move
+		*/
 		console.log('validation 진입========');
 		
 		let pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
-		let $num = $('#td_content1').html();
-		console.log("arti_num : "+$num);
+		let $seqNum = x.seqNum;
+		console.log("arti_num : "+$seqNum);
 		
 		$.ajax({
              url : $.ctx()+'/board/valid/'+pwInput,
@@ -289,33 +279,31 @@ app.service=(()=>{
              contentType : 'application/json',
              data : JSON.stringify({
             	 pwInput :pwInput,
-            	 num : $num
+            	 num : $seqNum
              }),
              success : d=>{
 					console.log('auth :: '+d.auth);
 					if(d.auth===false){
 						alert('비밀번호 확인해주세요');
-						
 					}else{
-						
-						if(x=='updateBrd'){
-							alert('비밀번호 일치, 수정페이지로 이동');
-							update({num : $num,
+						if(x.move=='updateBrd'){
+							console.log('비밀번호 일치, 수정페이지로 이동');
+							update({num : $seqNum,
 								  title : d.retrieveInfo.title,
 								 writer : d.retrieveInfo.writer,
 								content : d.retrieveInfo.content });
-							console.log("d.retrieveInfo.title : "+d.retrieveInfo.title);
+							/*console.log("d.retrieveInfo.title : "+d.retrieveInfo.title);
 							console.log("d.retrieveInfo.writer : "+d.retrieveInfo.writer);
-							console.log("d.retrieveInfo.content : "+d.retrieveInfo.content);
+							console.log("d.retrieveInfo.content : "+d.retrieveInfo.content);*/
 							
-						}else if(x=='deleteBrd'){
+						}else if(x.move=='deleteBrd'){
 							alert('비밀번호 일치');
 							$.ajax({
 					             url : $.ctx()+'/board/delete',
 					             method : 'put',
 					             contentType : 'application/json',
 					             data : JSON.stringify({
-					            	 num : $num
+					            	 num : $seqNum
 					             }),
 					             success : d=>{
 					            	alert('삭제완료');
@@ -339,11 +327,26 @@ app.service=(()=>{
 			list:list,
 			add:add,
 			detail:detail,
-			validation:validation,
+			validation:validation
 			};
 })();
 
 app.valid=(()=>{
+	var checkPassword=x=>{
+		//
+		console.log("--checkPassword----");
+		let pattern1 = /[0-9]/;	// 숫자 
+		let pattern2 = /[a-zA-Z]/;	// 문자 
+		let pattern3 = /[~!@#$%^&*()_+|<>?:{}]/;	// 특수문자
+		
+		if(!pattern1.test(x) || !pattern2.test(x) || !pattern3.test(x) || x.length<4 ){
+			alert("비밀번호는 4자리 이상 문자, 숫자, 특수문자로 구성하여야 합니다.(20자 이내)");
+			$('#input_pw').focus();
+			return false;
+		}else{
+			return true;
+		};
+	};
 	var isValid=()=>{
 		let vd = false;
 		
@@ -354,6 +357,14 @@ app.valid=(()=>{
 		let $pw=$.trim($('#input_pw').val());
 		let $content=$.trim($('#input_content').val());
 		
+		console.log("-----$title : "+$title);
+		console.log("-----$writer : "+$writer);
+		console.log("-----$pw : "+$pw);
+		console.log("-----$content : "+$content);
+		
+		
+		
+		//글자수 
 		var getByteLength = function(s,b,i,c){
 			  for(b=i=0; c=s.charCodeAt(i++); b+=c>>11?3:c>>7?2:1);
 			  return b;
@@ -361,43 +372,51 @@ app.valid=(()=>{
 			
 		let $contentByte = getByteLength($content);
 		console.log("$contentByte : "+$contentByte);
-		/*
-		if ($contentByte >= 65535) {
-			alert(" 제한된 65535Byte를 초과하였습니다");
-			vd=false;
+		console.log("$title.length : "+$title.length);
+		console.log("$writer.length : "+$writer.length);
+		
+		if($title.length>=99){
+			alert("제목은 100자 이내로 가능합니다.");
 		};
-		*/
-		
-		
+		if($writer.length>=20){
+			alert("작성자는 20자 이내로 가능합니다.");
+		};
 		
 		//$.trim() : 앞뒤의 빈칸 제거
 		if($title===''||$title===null){
 			alert("제목을 입력하세요");
+			$('#input_title').focus();
 			vd= false;
 		}else  
 		if($writer===''||$writer===null){
 			alert("작성자를 입력하세요");
+			$('#input_writer').focus();
 			vd= false;
 		}else 
 		if($pw===''||$pw==null){
 			alert("비밀번호를 입력하세요");
+			$('#input_pw').focus();
 			vd= false;
 		}else 
 		if($content===''||$content==null){
 			alert("내용을 입력하세요");
+			$('#input_content').focus();
 			vd= false;
+		}else {
+			vd = checkPassword($pw);
+			
 		};
-		if(!($title==='' || $writer==='' || $pw ==='' || $content ==='')){
+		/*if(check_pw===true && !($title==='' || $writer==='' || $pw ==='' || $content ==='')){
+			console.log("44444 check_pw : "+check_pw);
 			vd=true;
-		};
+		};*/
 		return vd;
 	};
 	var blankValid=()=>{
-		//
-		$('#input_title').keyup(function(){
+		/*$('#input_title').keyup(function(){
 			$title = $(this).val()
 		});
-		
+		*/
 		//작성자 : 20글자 이하 영문대소문자, 한글
 		$('#input_writer').keyup(function(event){
 			if (!(event.keyCode >=37 && event.keyCode<=40)) {
@@ -405,23 +424,14 @@ app.valid=(()=>{
                 $(this).val($(this).val().replace(/[^a-zA-Z가-힣]/gi,'')); //_(underscore), 영어, 숫자만 가능
             }
 		});
-		//password : _(underscore), 영어, 숫자만 가능
+		
+		/*//password : _(underscore), 영어, 숫자만 가능
 		$('#input_pw').keyup(function(event){
 			if (!(event.keyCode >=37 && event.keyCode<=40)) {
                 var inputVal = $(this).val();
                 $(this).val($(this).val().replace(/[^\w~@\#$%<>^&*\()\-=+_\']/gi,'')); //영문대소문자, 숫자, 특수기호 ~!@#$%^&*()_+-=
             }
-		});
-		/*
-		let $contentByte = getByteLength($content);
-		console.log(""+$contentByte);
-		if($contentByte >= 65535){
-			alert(" 제한된 65535Byte를 초과하였습니다");
-			$('#input_content').keyup();
-		};*/
-		
-		
-		
+		});*/
 		
 		
 	};
@@ -451,14 +461,6 @@ app.fn=(()=>{
 				alert("최대 2,000자 입력 가능합니다.");
 			}
 		});
-		
-		/*$('#input_content').keyup(e=>{
-			let $content = $('#input_content').val();
-			$('#count_geul').html($content.length);
-			if($content.length>2000){
-				alert("최대 2,000자 입력 가능합니다.");
-			}
-		});*/
 	};
 	return {countText:countText};
 })();
@@ -495,7 +497,7 @@ app.page=(()=>{
 		
 		
 		/*			+'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'*/
-		$('<button/>').attr({id:"list_btn"}).html("처음으로").addClass("btn btn-default pull-left").appendTo($('#list_row'));
+		$('<button/>').attr({id:"list_btn"}).html("목록보기").addClass("btn btn-default pull-left").appendTo($('#list_row'));
 		//글쓰기
 		$('<button/>').attr({id:"write_btn"}).html("글쓰기").addClass("btn btn-default pull-right").appendTo('#list_row')
 		.click(e=>{
@@ -583,7 +585,7 @@ app.page=(()=>{
 		                +'<tr>'
 		                  +'<td style="width: 160px; text-align: center;">비밀번호</td>'
 		                  +'<td><input type="password" class="form-control" id="input_pw" maxlength="20"></td>'
-		                  +'<td style="font-size: 0.9em; text-align: left;width: 480px;">20글자 이하의 영문대소문자, 숫자, 특수기호 ~!@#$%^&*()_+-= 로 입력하세요</td>'
+		                  +'<td style="font-size: 0.9em; text-align: left;width: 480px;">비밀번호는 4자리 이상 문자, 숫자, 특수문자로 구성하여야 합니다.(20자 이내)</td>'
 		                +'</tr>'
 		                +'<tr>  '
 		                  +'<td style="width: 160px; text-align: center;">내용</td>'
@@ -716,3 +718,18 @@ app.page=(()=>{
 })();
 
 
+
+
+
+
+
+
+
+/*//바이트 수 계산
+var getByteLength = function(s,b,i,c){
+	  for(b=i=0; c=s.charCodeAt(i++); b+=c>>11?3:c>>7?2:1);
+	  return b;
+	};*/
+	/* console.log(getByteLength("1234567890") + " Bytes");
+		console.log(getByteLength("안녕하세요") + " Bytes");*/
+	

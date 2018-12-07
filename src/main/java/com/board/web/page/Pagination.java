@@ -37,7 +37,7 @@ public Map<?, ?> excute(Map<?, ?> p) {
 	int beginRow = (pageNum - 1) * rowSize + 1;
 	int endRow = pageNum * rowSize;
 
-	int preBlock = endPage - blockSize;
+	int preBlock = (beginPage + blockSize-1) - blockSize;
 	int nextBlock = beginPage + blockSize;
 	
 	boolean existPrev = (beginPage!=1);
@@ -54,9 +54,12 @@ public Map<?, ?> excute(Map<?, ?> p) {
 	System.out.println("existPrev : "+existPrev);
 	System.out.println("existNext : "+existNext);
 	*/
+	
+	//pg.put("rowSize", rowSize);
 	pg.put("rowCount", rowCount);
 	pg.put("beginPage", beginPage);
 	pg.put("endPage", endPage);
+	pg.put("lastPage", pageCount);
 	pg.put("beginRow", beginRow);
 	pg.put("endRow", endRow);
 	

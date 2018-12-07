@@ -5,6 +5,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
 <mapper namespace="com.board.web.board.BoardMapper">
 <resultMap type="map" id="board">
+	<result property="rownum" column="ROWNUM"/>
 	<result property="num" column="NUM"/>
 	<result property="title" column="TITLE"/>
 	<result property="content" column="CONTENT"/>
@@ -18,20 +19,53 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW) 
 	VALUES (#{title}, #{content} ,#{writer},#{pw});
 </insert>
+
 <select id="listBoard"  resultMap="board">
-	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
+SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE	
+FROM	(
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
 	FROM (
-		SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, A.*
-		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
+		SELECT  A.*
+		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
+		WHERE CHECKDELETE IS NULL 
 		<if test="keyword!='undefined' and keyword!=''">
-		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
-		AND CHECKDELETE IS NULL
+			AND TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T
+	) S	
+WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
+
+
+<!-- 
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A 
+		, (SELECT @ROWNUM:=0) R 
+		 WHERE CHECKDELETE IS NULL
+		<if test="keyword!='undefined' and keyword!=''">
+			AND TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T 
+	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow} -->
+	
+</select>
+<!-- <select id="listBoard"  resultMap="board">
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A (SELECT @ROWNUM:=0) R
+		WHERE CHECKDELETE IS NULL
+		<if test="keyword!='undefined' and keyword!=''">
+		AND TITLE LIKE CONCAT('%', #{keyword}, '%')
 		</if>
 		ORDER BY NUM DESC
 		) T
 	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 	
-</select>
+</select> -->
 <!-- 
 <select id="listBoard"  resultMap="board">
 	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE 
@@ -57,8 +91,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <select id="countTotalContents" resultType="int">
 	SELECT COUNT(*) AS COUNT  
 	FROM T_BOARD 
+	WHERE CHECKDELETE IS NULL 
 	<if test="keyword!='undefined' and keyword!=''">
-		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
+		AND TITLE LIKE CONCAT('%', #{keyword}, '%')
 	</if>
 </select>
 <update id="updateBoard">
