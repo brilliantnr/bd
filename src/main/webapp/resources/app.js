@@ -133,7 +133,8 @@ app.service=(()=>{
 			$('<li/>').append(
 					$('<button/>').addClass("btn btn-default").attr({type:"button"}).append(
 							"마지막",
-							$('<span/>').addClass("glyphicon glyphicon-chevron-right "))).click(e=>{
+							$('<span/>').addClass("fas fa-angle-double-right"))).click(e=>{
+								//<i class="fas fa-angle-double-right"></i>
 								e.preventDefault();
 								console.log("마지막버튼 ");
 								list({pageNum: d.lastPage, keyword:d.keyword}); 
@@ -264,11 +265,16 @@ app.service=(()=>{
 		
 	};
 	var validation=x=>{
-		/* @param x.seqNum
-		 * @param x.move
+		/* @param seqNum
+		 * @param move
 		*/
 		console.log('validation 진입========');
-		
+		console.log('x.move : '+x.move);
+		if(x.move==='deleteBrd'){
+			alert("삭제 하시겠습니까?");
+		}else if(x.move==='updateBrd'){
+				alert("수정 하시겠습니까?");
+		};
 		let pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
 		let $seqNum = x.seqNum;
 		console.log("arti_num : "+$seqNum);
@@ -375,12 +381,13 @@ app.valid=(()=>{
 		console.log("$title.length : "+$title.length);
 		console.log("$writer.length : "+$writer.length);
 		
-		if($title.length>=99){
-			alert("제목은 100자 이내로 가능합니다.");
-		};
-		if($writer.length>=20){
-			alert("작성자는 20자 이내로 가능합니다.");
-		};
+		/*//password : _(underscore), 영어, 숫자만 가능
+		$('#input_pw').keyup(function(event){
+			if (!(event.keyCode >=37 && event.keyCode<=40)) {
+                var inputVal = $(this).val();
+                $(this).val($(this).val().replace(/[^\w~@\#$%<>^&*\()\-=+_\']/gi,'')); //영문대소문자, 숫자, 특수기호 ~!@#$%^&*()_+-=
+            }
+		});*/
 		
 		//$.trim() : 앞뒤의 빈칸 제거
 		if($title===''||$title===null){
@@ -422,7 +429,18 @@ app.valid=(()=>{
 			if (!(event.keyCode >=37 && event.keyCode<=40)) {
                 var inputVal = $(this).val();
                 $(this).val($(this).val().replace(/[^a-zA-Z가-힣]/gi,'')); //_(underscore), 영어, 숫자만 가능
-            }
+            };
+            if($(this).val().length>=20){
+    			alert("작성자는 20자 이내로 가능합니다.");
+    			$(this).focus();
+    		};
+		});
+		
+		$('#input_title').keyup(function(event){
+			if($(this).val().length>=99){
+				alert("제목은 100자 이내로 가능합니다.");
+				$('#input_title').focus();
+			};
 		});
 		
 		/*//password : _(underscore), 영어, 숫자만 가능

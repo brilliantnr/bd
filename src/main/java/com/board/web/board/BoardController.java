@@ -66,7 +66,7 @@ public class BoardController {
 		logger.info("num : "+map.get("num"));
 		
 		map.put("detail", mapper.detailBoard(map));
-		logger.info("detail 결과 : "+map.get("detail"));
+		//logger.info("detail 결과 : "+map.get("detail"));
 		
 		
 		return map;
