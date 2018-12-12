@@ -88,9 +88,9 @@ app.service=(()=>{
 			let next = (d.existNext)? '':'disabled';
 			
 			/* 처음버튼 */
-			$('<li/>').append(
+			$('<li/>').addClass(prev).append(
 					$('<button/>').addClass("btn btn-default").attr({type:"button", style:"float: left;"}).append(
-							$('<span/>').html("처음").addClass("glyphicon glyphicon-chevron-left "))).click(e=>{
+							$('<span/>').addClass("fas fa-angle-double-left"))).click(e=>{
 								e.preventDefault();
 								console.log("처음버튼 ");
 								list({pageNum: 1, keyword:d.keyword}); 
@@ -132,7 +132,7 @@ app.service=(()=>{
 			/* 마지막페이지버튼 */
 			$('<li/>').append(
 					$('<button/>').addClass("btn btn-default").attr({type:"button"}).append(
-							"마지막",
+							/*"마지막",*/
 							$('<span/>').addClass("fas fa-angle-double-right"))).click(e=>{
 								//<i class="fas fa-angle-double-right"></i>
 								e.preventDefault();
@@ -214,7 +214,7 @@ app.service=(()=>{
 		$('#complete_btn').click(e=>{
 			let $title = $('#input_title').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim(); //태그입력방지
 			let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
-			let $writer = $('#input_writer').val().trim();
+			let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
 			let $pw = $('#input_pw').val();
 			
 			/* 유효성 검사 */
@@ -339,7 +339,9 @@ app.service=(()=>{
 
 app.valid=(()=>{
 	var checkPassword=x=>{
-		//
+		
+		
+		//비밀번호
 		console.log("--checkPassword----");
 		let pattern1 = /[0-9]/;	// 숫자 
 		let pattern2 = /[a-zA-Z]/;	// 문자 
@@ -420,26 +422,30 @@ app.valid=(()=>{
 		return vd;
 	};
 	var blankValid=()=>{
-		/*$('#input_title').keyup(function(){
-			$title = $(this).val()
+
+		$('#input_title').keyup(function(event){
+			if($(this).val().length>=99){
+				alert("제목은 100자 이내로 가능합니다.");
+				$('#input_title').focus();
+			};
 		});
-		*/
+		
 		//작성자 : 20글자 이하 영문대소문자, 한글
 		$('#input_writer').keyup(function(event){
-			if (!(event.keyCode >=37 && event.keyCode<=40)) {
+			/*if (!(event.keyCode >=37 && event.keyCode<=40)) {
                 var inputVal = $(this).val();
                 $(this).val($(this).val().replace(/[^a-zA-Z가-힣]/gi,'')); //_(underscore), 영어, 숫자만 가능
-            };
+            };*/
             if($(this).val().length>=20){
     			alert("작성자는 20자 이내로 가능합니다.");
     			$(this).focus();
     		};
 		});
 		
-		$('#input_title').keyup(function(event){
-			if($(this).val().length>=99){
-				alert("제목은 100자 이내로 가능합니다.");
-				$('#input_title').focus();
+		$('#input_pw').keyup(function(event){
+			if($(this).val().length>=20){
+				alert("비밀번호는 20자 이내로 가능합니다.");
+				$('#input_pw').focus();
 			};
 		});
 		

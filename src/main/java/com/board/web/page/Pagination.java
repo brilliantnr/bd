@@ -37,7 +37,7 @@ public Map<?, ?> excute(Map<?, ?> p) {
 	int beginRow = (pageNum - 1) * rowSize + 1;
 	int endRow = pageNum * rowSize;
 
-	int preBlock = (beginPage + blockSize-1) - blockSize;
+	int preBlock = beginPage - 1;
 	int nextBlock = beginPage + blockSize;
 	
 	boolean existPrev = (beginPage!=1);
