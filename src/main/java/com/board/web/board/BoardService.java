@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-@Component
+
 public interface BoardService {
 	public void addBoard(Map<?, ?> p);
 	public Board retrieveBoard(Map<?, ?> p);

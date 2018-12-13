@@ -34,6 +34,10 @@ app.service=(()=>{
 		*/
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
 			$.each(d.list,(i,j)=>{
+				/* NO에 역순 rownum 넣기 */
+				let listNum = d.rowCount - j.rownum + 1;
+				let $seq_num = j.num ;
+				
 				if(j.checkdelete=="Y"){
 					j.title="원글이 삭제되었습니다";
 					j.writer="";
@@ -55,20 +59,35 @@ app.service=(()=>{
 					j.regidate = transTime(j.regidate);
 				};
 
-				/* NO에 역순 rownum 넣기 */
-				let listNum = d.rowCount - j.rownum + 1;
-				let $seq_num = j.num ;
+				
 				/* 리스트 구성 
 				 * NO의 id = seqNum
 				 * */
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
-						$('<td/>').addClass("ellipsis").append($('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
+						$('<td/>').addClass("ellipsis").append(
+								
+
+								$('<img/>'),
+								$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
 										console.log("detail 넘어가는 값 : "+$seq_num);
 										detail({seqNum : $seq_num, listNum : listNum});
 									});
-						})
+								}),
+								$('<a/>').attr({name:"count_cmt"}).addClass("count_cmt").html("[0]")
+								
+						
+								
+								/*$('<img/>'),
+								$('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
+									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
+										console.log("detail 넘어가는 값 : "+$seq_num);
+										detail({seqNum : $seq_num, listNum : listNum});
+									});
+								}),
+								$('<a/>').attr({name:"count_cmt"}).addClass("count_cmt").html("[0]")*/
+								
 						),
 						$('<td/>').addClass("center ellipsis").html(j.writer),
 						$('<td/>').addClass("center").html(j.regidate)
@@ -139,6 +158,12 @@ app.service=(()=>{
 								console.log("마지막버튼 ");
 								list({pageNum: d.lastPage, keyword:d.keyword}); 
 							}).appendTo('#pg_ul');
+			
+			
+			
+			
+			
+			
 		});
 	};
 	var add=()=>{
@@ -244,8 +269,207 @@ app.service=(()=>{
 	};
 	
 	var detail=x=>{
+		
 		$('#wrapper').html(app.page.detailBrd());
+		$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).appendTo($('#cmt_div'));
+		
+		
 		var $seqNum = x.seqNum;
+		$('#seqNum').attr({name:$seqNum});
+		
+		/* 댓글 입력창 START */
+		//기존 댓글 리스트 START
+		console.log("-----1111 -------");
+		$.getJSON($.ctx()+'/board/listCmt/'+$seqNum,d=>{
+			console.log("-----2222 -------");
+			console.log("----d.listCmt----"+d.listCmt);
+			console.log();
+			console.log();
+		/*	$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).append(*/
+				$.each(d.listCmt,(i,j)=>{
+					let $cmt_no = j.cmt_no;
+					let $cmt_writer = j.cmt_writer;
+					let $cmt_pw = j.cmt_pw;
+					let $cmt_content = j.cmt_content;
+					
+					console.log("j.cmt_no : "+j.cmt_no);
+					console.log("j.cmt_writer : "+j.cmt_writer);
+					console.log("j.cmt_pw : "+j.cmt_pw);
+					console.log("j.cmt_content : "+j.cmt_content);
+					
+					/*$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).append(*/
+						let $cmt_li=$('<li/>').attr({id:$cmt_no}).append(
+								$('<div/>').attr({style:"padding-top: 10px;"}).append(
+									$('<div/>').attr({style:"height: 20px;"}).append(
+											$('<i/>').addClass("fas fa-user"),
+											$('<span/>').attr({style:"margin: 0 0 0px 10px;"}).text(j.cmt_writer),
+											$('<p/>').attr({style:"float: right;margin: 0;padding-top: 3px;"}).append(
+													$('<a href="#"/>').html("수정").click(e=>{
+														/* 댓글 수정 버튼 클릭*/
+														var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
+														$.ajax({
+															 url : $.ctx()+'/board/validcmt/'+pwInput,
+															 method : 'post',
+												             contentType : 'application/json',
+												             data : JSON.stringify({
+												            	 pwInput :pwInput,
+												            	 num : $seqNum,
+												            	 cmt_no:$cmt_no
+												             }),
+												             success:d=>{
+												            	 if(d.auth===false){
+																		alert('비밀번호 확인해주세요');
+																	}else{
+																		alert('비밀번호 일치,댓글수정');
+																		console.log("$cmt_no : "+$cmt_no);
+																		
+																		//-------댓글 수정 화면 START ----------
+																		let cmtBox = $('<table/>').addClass("cminput").append(
+																				$('<tbody/>').append(
+																					$('<tr/>').append(
+																						$('<td colspan="4"/>').append(
+																								$('<div/>').append(
+																										"작성자 : ",
+																										$('<input>').attr({id:"input_writer"}).val($cmt_writer)
+																										)
+																								),
+																						$('<td colspan="4"/>').append(
+																								$('<div/>').append(
+																										"비밀번호 : ",
+																										$('<input>').attr({id:"input_pw"})
+																										)
+																								)
+																							)
+																						,
+																					$('<tr/>').append(	
+																						$('<td colspan="7"/>').addClass("i2").append(
+																							$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(
+																								$('<textarea/>').text($cmt_content).attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 14px; height: 80px;"}).addClass("textarea m-tcol-c"),
+																								$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
+																										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
+																										$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
+																										"/",
+																										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("전체 입력 가능한 글자수"),
+																										$('<span/>').attr({style:"font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).html("300자")
+																										)
+																								
+																								
+																								
+																								)
+																						),
+																						$('<td/>').addClass("i3").append(
+																								$('<div/>').addClass("cmt_btn u_cbox_btn_upload _submitBtn").attr({style:"text-align: center;"}).append(
+																										$('<a/>').attr({href:"#",style:" font-size: 13px; font-weight: bold; line-height: 130px; text-align: center;display: block;width: 100%; height: 100%;"}).addClass("u_cbox_txt_upload _submitCmt").html("수정")
+																										.click(e=>{
+																											let $seqNum = $('#seqNum').attr('name');
+																											let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
+																											let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
+																											let $pw = $('#input_pw').val();
+																											
+																											console.log("----댓글입력시 $seqNum : "+$seqNum);
+																											/* 유효성 검사 */
+																											let v = app.valid.cmtValid();
+																											if(v){
+																												 $.ajax({
+																										             url : $.ctx()+'/board/updateComment',
+																										             method : 'put',
+																										             contentType : 'application/json',
+																										             data : JSON.stringify({
+																										            	 num : $seqNum,
+																										            	 cmt_no: $cmt_no,
+																										            	 cmt_content :$content,
+																										            	 cmt_writer :$writer, 
+																										            	 cmt_pw : $pw,
+																										             }),
+																										             success : d=>{
+																										            	alert('댓글 수정 완료 ');
+																										            	$('#'+$cmt_no).empty();
+																										            	$('#'+$cmt_no).append($cmt_li);
+																										            	
+																										            	/*$('#wrapper').empty();
+																										         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
+																										         		$('#wrapper').html(app.page.detailBrd());
+																										         		app.service.detail({seqNum:d.detail.num });*/
+																										             }
+																										           });
+																											}
+																										}
+																									)
+																							)
+																						)
+																					)
+																				)
+																		);
+																		//-------댓글 수정 화면 END ----------
+																		$('#'+$cmt_no).empty();
+																		$('#'+$cmt_no).append(cmtBox);
+																		
+																		
+
+																		
+/*																		$('#wrapper').empty();
+ * 
+																		$('#wrapper').append($('<div/>').attr({id : 'contents'}));*/
+																		
+																	};
+												            	 
+												             }
+												             
+												             
+														});
+														
+														
+														
+														
+														
+														
+														$.ajax({
+															url: $.ctx()+'/board/updateCmt',
+															method: 'PUT',
+															contentType:'application/json',
+															data: JSON.stringify({
+																num:$seqNum,
+																/*cmt_writer:
+																cmt_pw:,
+																cmt_content:*/
+																
+															})
+														});//-------0000-------
+														
+														
+														/*
+														 * 
+														 * 
+														 * 
+														 * 
+														*/
+														
+													}),
+													$('<a href="#"/>').html("삭제").attr({style:"margin-left: 10px;"})
+													)
+											
+									),
+									$('<p/>').attr({style:"padding-left: 40px;padding: 10px 0px 10px 50px; margin: 3px 0 0 0; line-height: 15px; text-align: left; word-break: break-all; word-wrap: break-word;"}).append(
+										$('<span/>').attr({style:"line-height: 22px;"}).text(j.cmt_content)
+										)
+									)).appendTo($('#cmt_list'));
+						$('<li>').attr({style:"height: 1px; padding: 0; overflow: hidden; font: 0/0 arial; border-bottom-width: 1px; border-bottom-style: dotted;"}).appendTo($('#cmt_list'));
+				/*).appendTo($('#cmt_div'));*/
+				
+			})
+			/*).appendTo($('#cmt_div'));*/
+		});
+		
+		
+		//기존 댓글 리스트 END
+		var cmt = app.page.cmtTable();
+		cmt.appendTo($('#cmt_div'));
+		app.valid.blankValid(); 
+		$('#count_geul').html("0");
+		app.fn.countCmt(); 
+		/* 댓글 입력창 END */
+		
+		
 		$.getJSON($.ctx()+'/board/detail/'+$seqNum,d=>{
 			$('#td_content1').html(x.listNum);
 			$('#td_content2').html(d.detail.title);
@@ -355,6 +579,39 @@ app.valid=(()=>{
 			return true;
 		};
 	};
+	var cmtValid=()=>{
+		let vd = false;
+		blankValid();//공백체크
+		let $writer=$.trim($('#input_writer').val());
+		let $pw=$.trim($('#input_pw').val());
+		let $content=$.trim($('#input_content').val());
+		
+		//글자수 
+		var getByteLength = function(s,b,i,c){
+			  for(b=i=0; c=s.charCodeAt(i++); b+=c>>11?3:c>>7?2:1);
+			  return b;
+			};
+		let $contentByte = getByteLength($content);
+		
+		if($writer===''||$writer===null){
+			alert("작성자를 입력하세요");
+			$('#input_writer').focus();
+			vd= false;
+		}else 
+		if($pw===''||$pw==null){
+			alert("비밀번호를 입력하세요");
+			$('#input_pw').focus();
+			vd= false;
+		}else 
+		if($content===''||$content==null){
+			alert("내용을 입력하세요");
+			$('#input_content').focus();
+			vd= false;
+		}else {
+			vd = checkPassword($pw);
+		};
+		return vd;
+	};
 	var isValid=()=>{
 		let vd = false;
 		
@@ -461,7 +718,8 @@ app.valid=(()=>{
 	};
 	return {
 		isValid:isValid,
-		blankValid:blankValid
+		blankValid:blankValid,
+		cmtValid:cmtValid
 	};
 })();
 
@@ -486,13 +744,99 @@ app.fn=(()=>{
 			}
 		});
 	};
-	return {countText:countText};
+	var countCmt=()=>{
+		$('#input_content').keyup(e=>{
+			let $content = $('#input_content').val();
+			$('#count_geul').html($content.length);
+			if($content.length>300){
+				alert("최대 300자 입력 가능합니다.");
+			}
+		});
+	};
+	return {countText:countText,countCmt:countCmt};
 })();
 
 
 
 // 페이지 구성 =============================================================================================================
 app.page=(()=>{
+	/* 댓글 입력창 구현 화면 */
+	var cmtTable =()=>{
+		let cmtBox = $('<table/>').addClass("cminput").append(
+				$('<tbody/>').append(
+					$('<tr/>').append(
+						$('<td/>').append(
+								$('<div/>').append(
+										"작성자 : ",
+										$('<input>').attr({id:"input_writer"})
+										)
+								),
+						$('<td/>').append(
+								$('<div/>').append(
+										"비밀번호 : ",
+										$('<input>').attr({id:"input_pw"})
+										)
+								)
+							)
+						,
+					$('<tr/>').append(	
+						$('<td colspan="2"/>').addClass("i2").append(
+							$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(
+								$('<textarea/>').attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 14px; height: 80px;"}).addClass("textarea m-tcol-c"),
+								$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
+										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
+										$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
+										"/",
+										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("전체 입력 가능한 글자수"),
+										$('<span/>').attr({style:"font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).html("300자")
+										)
+								
+								
+								
+								)
+						),
+						$('<td/>').addClass("i3").append(
+								$('<div/>').addClass("cmt_btn u_cbox_btn_upload _submitBtn").attr({style:"text-align: center;"}).append(
+										$('<a/>').attr({href:"#",style:" font-size: 13px; font-weight: bold; line-height: 130px; text-align: center;display: block;width: 100%; height: 100%;"}).addClass("u_cbox_txt_upload _submitCmt").html("등록")
+										.click(e=>{
+											let $seqNum = $('#seqNum').attr('name');
+											let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
+											let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
+											let $pw = $('#input_pw').val();
+											
+											console.log("----댓글입력시 $seqNum : "+$seqNum);
+											/* 유효성 검사 */
+											let v = app.valid.cmtValid();
+											if(v){
+												 $.ajax({
+										             url : $.ctx()+'/board/addComment/'+$seqNum,
+										             method : 'POST',
+										             contentType : 'application/json',
+										             data : JSON.stringify({
+										            	 num : $seqNum,
+										            	 cmt_content :$content,
+										            	 cmt_writer :$writer, 
+										            	 cmt_pw : $pw,
+										             }),
+										             success : d=>{
+										            	alert('댓글입력완료 ');
+										            	$('#wrapper').empty();
+										         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
+										         		$('#wrapper').html(app.page.detailBrd());
+										         		app.service.detail({seqNum:d.detail.num });
+										             }
+										           });
+											}
+										}
+												)
+										)
+								
+						)
+					)
+				)
+		);
+		return cmtBox;
+	};
 	var fisrt=()=>{
 
 		$('#wrapper').empty();
@@ -572,8 +916,6 @@ app.page=(()=>{
 			});
 		});
 		//bootstrap.min.js 끝
-		
-		
 
 		return list_compo;
 	};
@@ -630,7 +972,7 @@ app.page=(()=>{
 		              +'</tbody>'
 		              
 		            +'</table>'
-		            +'<div id="btn_div" style="text-align: right;">'
+		            +'<div id="btn_div" style="text-align: right; margin-top: 50px;">'
 		              	+'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'
 		                +'<button id="complete_btn" class="btn btn-primary pull-right">글쓰기 완료</button>'
 		            +'</div>'
@@ -676,15 +1018,15 @@ app.page=(()=>{
 		            +'<table class="table table-striped" style="text-align:center; border:1px solid #dddddd;">'
 		              +'<thead>'
 		                +'<tr>'
-		                  +'<th colspan="2" style="background-color:#eeeeee; text-align: center;">게시글</th>'
+		                  +'<th colspan="2" id="seqNum"   style="background-color:#eeeeee; text-align: center;">게시글</th>'
 		                +'</tr>       '
 		              +'</thead>'
 		              +''
 		              +'<tbody>'
-		              +'<tr>'
+		           /* +'<tr>'
 		              +'<td id="td1" style="width: 160px; text-align: center;">NO</td>'
 		              +'<td id="td_content1" style="text-align: left;"></td>'
-		            +'</tr>'
+		            +'</tr>'*/
 		            +'<tr>'
 		            +'<td id="td2" style="width: 160px; text-align: center;">글제목</td>'
 		              +'<td id="td_content2" style="text-align: left;white-space: pre-wrap;word-break:break-all;"></td>'
@@ -695,15 +1037,26 @@ app.page=(()=>{
 		            +'</tr>'
 		            +'<tr>'
 		            +'<td id="td4" style="width: 160px; text-align: center;">내용</td>'
-		              +'<td id="td_content4" style="text-align: left; white-space: pre-wrap;word-break:break-all;"></td>'
+		              +'<td id="td_content4" style="height:200px; text-align: left; white-space: pre-wrap;word-break:break-all;"></td>'
 		            +'</tr>'
 		              +'</tbody>'
 	            +'</table>'
-	              +'<div id="btn_div" style="text-align: right;">'
+	           
+	              +'<div id="btn_div" style="text-align: right; margin: 0 0 50px;">'
 	                +'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'
 	                +'<button id="update_btn" class="btn btn-primary">수정</button>'
 	                +'<button id="delete_btn" class="btn btn-primary">삭제</button>'
 	              +'</div>'
+	              
+	              /* 댓글 cmt_div START*/
+	              +'<div id="cmt_div" class="cmt_div">'
+	              
+	              +'<div style="clear: both; height: 0pt; font: 0pt/0pt arial;"></div>'
+	              +'<div style="display:none;" class="cc_paginate cmt" id="cmt_paginate"></div>'
+	            +'</div>' 
+	              /* 댓글 cmt_div 끝 */ 
+	            
+	            
 	          +'</div>'
 	         +'</div>'
 	      +'</div>';
@@ -738,7 +1091,7 @@ app.page=(()=>{
 		).appendTo($('table'));*/
 		
 	};
-	return{fisrt:fisrt, listBrd:listBrd, inputBrd:inputBrd, detailBrd:detailBrd, fileUpload:fileUpload };
+	return{cmtTable:cmtTable, fisrt:fisrt, listBrd:listBrd, inputBrd:inputBrd, detailBrd:detailBrd, fileUpload:fileUpload };
 })();
 
 

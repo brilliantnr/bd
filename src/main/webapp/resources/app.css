@@ -2,7 +2,7 @@
 
 .ellipsis{
   overflow: hidden; /* 사용영역 감춤 */
-  text-overflow: ellipsis;
+  text-overflow: ellipsis; /* ... 으로 생략 */
   white-space: nowrap; /* 줄바꿈 방지 */
   /* height: 20px; */
 }
@@ -29,4 +29,65 @@
 }
 
 
+.count_cmt{
+	padding-left: 10px;
+    font-weight: bold;
+    color: #ff2f3b;
+}
+
+
+#cmt_div{
+	zoom: 1;
+    margin: 0;
+    padding: 11px 26px 16px 24px;
+    background-color: #f9f9f9;
+}
+.cmlist{
+	
+}
+.cminput {
+	cellspacing:0;
+	/* cellspacing="0" */
+    margin: 14px 0 0;
+    padding: 0;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.i2{
+	    width: 90%;
+}
+.i3{
+	    position: relative;
+    width: 89px;
+    text-align: right;
+    /* vertical-align: bottom; */
+}
+.cminput .comm_write_wrap {
+    clear: both;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid;
+}
+.cminput .comm_write_wrap {
+    border-color: rgba(139, 139, 139, 0.3);
+    background-color: #fff;
+}
+.cminput .textarea {
+    width: 100%;
+    margin: 0;
+    padding: 1px 0;
+    overflow: auto;
+    -webkit-appearance: none;
+    -webkit-border-radius: 0;
+    resize: none;
+   }
+   
+.cminput .comm_write_wrap .textarea {
+    background-color: #fff;
+}
+/* 댓글 등록 버튼 */
+.cminput .u_cbox_btn_upload {
+    border-color: #ccc;
+}
 

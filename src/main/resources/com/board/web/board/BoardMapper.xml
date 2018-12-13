@@ -13,6 +13,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<result property="pw" column="PW"/>
 	<result property="regidate" column="REGIDATE"/>
 	<result property="checkdelete" column="CHECKDELETE"/>
+	
+	<result property="cmt_no" column="CMT_NO"/>
+	<result property="cmt_writer" column="CMT_WRITER"/>
+	<result property="cmt_pw" column="CMT_PW"/>
+	<result property="cmt_content" column="CMT_CONTENT"/>
 </resultMap>
 
 <insert id="insertBoard">
@@ -114,5 +119,44 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 	SET CHECKDELETE ="Y"
 	WHERE NUM =#{num};
 </update>
+
+
+
+<!-- 댓글 -->
+<insert id="insertComments">
+INSERT INTO COMMENTS (BR_NO, CMT_WRITER, CMT_PW, CMT_CONTENT)
+VALUES (
+	#{num},
+	#{cmt_writer},
+	#{cmt_pw},
+	#{cmt_content}
+);
+</insert>
+<select id="detailComments" resultType="com.board.web.board.Comments">
+SELECT * FROM COMMENTS
+WHERE BR_NO LIKE #{num} AND CMT_NO LIKE #{cmt_no}
+</select>
+<select id="listComments" resultMap="board">
+SELECT * FROM COMMENTS
+WHERE BR_NO LIKE #{num}
+ORDER BY CMT_NO 
+</select>
+<update id="updateComments">
+UPDATE COMMENTS 
+	SET CMT_WRITER = #{cmt_writer},
+		CMT_PW = #{cmt_pw},
+		CMT_CONTENT = #{cmt_content}
+	WHERE BR_NO = #{num};
+</update>
+<delete id="deleteComments">
+DELETE FROM COMMENTS
+WHERE BR_NO LIKE #{num} AND CMT_NO LIKE #{cmt_no}
+</delete>
+<select id="countComments" resultType="int">
+SELECT COUNT(*) FROM COMMENTS
+WHERE BR_NO LIKE #{num}
+</select>
+
+
 
 </mapper>

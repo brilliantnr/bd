@@ -24,40 +24,20 @@ public class BoardController {
 	@Autowired Pagination pagination;
 	
 	@GetMapping("/list/{pageNo}/{keyword}")
-	public Map<String,Object> listBoard(@PathVariable String pageNo,
-			@PathVariable Object keyword) {
+	public Map<String,Object> listBoard(@PathVariable String pageNo, @PathVariable Object keyword) {
 		logger.info(" list() 진입 ");
 		Map<String,Object> map = new HashMap<>();
 		
 		map.put("pageNo", pageNo);
 		map.put("keyword", keyword);
 		System.out.println("map.get keyword :  "+map.get("keyword"));
-		//페이지네이션
-		pagination.excute(map);
+		
+		pagination.excute(map);//페이지네이션
 		map.put("list", mapper.listBoard(map));
 		//System.out.println("map.get(\"list\")결과 : "+map.get("list"));
 		return map;
 	};
 	
-	/*
-	 * 서치 조건 추가중 에러
-	 * @GetMapping("/list/{pageNo}/{keyword}/{con}")
-	public Map<String,Object> listBoard(@PathVariable String pageNo,
-			@PathVariable Object keyword,
-			@PathVariable String con) {
-		logger.info(" list() 진입 ");
-		Map<String,Object> map = new HashMap<>();
-		
-		map.put("pageNo", pageNo);
-		map.put("keyword", keyword);
-		map.put("con", con);
-		System.out.println("map.get keyword :  "+map.get("keyword"));
-		//페이지네이션
-		pagination.excute(map);
-		map.put("list", mapper.listBoard(map));
-		System.out.println("map.get(\"list\")결과 : "+map.get("list"));
-		return map;
-	};*/
 	@GetMapping("/detail/{num}")
 	public Map<String,Object> detailBoard(@PathVariable String num) {
 		logger.info(" detail() 진입 ");
@@ -66,11 +46,17 @@ public class BoardController {
 		logger.info("num : "+map.get("num"));
 		
 		map.put("detail", mapper.detailBoard(map));
+		//map.put("cmtList", mapper.listComments(map));
 		//logger.info("detail 결과 : "+map.get("detail"));
 		
 		
 		return map;
 	}
+	
+	
+	
+	
+	
 	@PostMapping("/add")
 	public Map<String, Object> add(@RequestBody Map<String,Object> pm) {
 		logger.info(" add() 진입");
@@ -121,6 +107,63 @@ public class BoardController {
 		System.out.println("auth : "+auth);
 		return map;
 	}
+	
+	/* =========================================
+	 * 댓글 관련
+	 * =========================================
+	*/
+	@PostMapping("/validcmt/{pwInput}")
+	public Map<String, Object> validcmt(@RequestBody Map<String,Object> p){
+		logger.info(" validcmt() 진입");
+		Map<String,Object> map = new HashMap<>();
+		Comments retrieveCmt = mapper.detailComments(p);
+		Boolean auth = false;
+		if(p.get("pwInput").equals(retrieveCmt.getCmt_pw())) {
+			auth = true;
+		};
+		map.put("auth", auth);
+		map.put("retrieveCmt", retrieveCmt);
+		System.out.println("auth : "+auth);
+		return map;
+	}
+	
+	
+	@PostMapping("/addComment/{num}")
+	public Map<String, Object> addComment(@RequestBody Map<String,Object> pm) {
+		Map<String,Object> map = new HashMap<>();
+		logger.info(" addComment() 진입");
+		
+		System.out.println(pm.get("num"));
+		
+		mapper.insertComments(pm);
+		map.put("detail", mapper.detailBoard(pm));
+		map.put("listCmt", mapper.listComments(pm));
+		return map;
+	};
+	@GetMapping("/listCmt/{num}")
+	public Map<String,Object> listCmt(@PathVariable String num) {
+		logger.info(" listCmt() 진입 ");
+		Map<String,Object> map = new HashMap<>();
+		System.out.println("listCMt - ");
+		map.put("num", num);
+		map.put("listCmt", mapper.listComments(map));
+		System.out.println("map.get(\"listCmt\") : "+map.get("listCmt"));
+		return map;
+	};
+	
+	@PutMapping("/updateComment")
+	public void updateComment(@RequestBody Map<String,Object> p){
+		logger.info(" updateComment() 진입");
+		logger.info("p : "+p);
+		mapper.updateComments(p);
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
