@@ -38,6 +38,10 @@ app.service=(()=>{
 				let listNum = d.rowCount - j.rownum + 1;
 				let $seq_num = j.num ;
 				
+				$.getJSON($.ctx()+'/board/countCmt/'+$seq_num,d=>{
+					$("#count_cmt"+$seq_num).html("[ "+d+" ]");
+				});
+				
 				if(j.checkdelete=="Y"){
 					j.title="원글이 삭제되었습니다";
 					j.writer="";
@@ -66,8 +70,6 @@ app.service=(()=>{
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
 						$('<td/>').addClass("ellipsis").append(
-								
-
 								$('<img/>'),
 								$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
@@ -75,9 +77,7 @@ app.service=(()=>{
 										detail({seqNum : $seq_num, listNum : listNum});
 									});
 								}),
-								$('<a/>').attr({name:"count_cmt"}).addClass("count_cmt").html("[0]")
-								
-						
+								$('<a/>').attr({id:"count_cmt"+$seq_num ,name:"count_cmt"}).addClass("count_cmt")
 								
 								/*$('<img/>'),
 								$('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
@@ -323,11 +323,9 @@ app.service=(()=>{
 																		
 																		//-------댓글 수정 화면 START ----------
 																		/* 입력 즉시 공백체크 */
-																		app.valid.blankValid();
-																		
-																		/* 글자수 세기 */
+																		app.valid.cmtValid(); 
 																		$('#count_geul').html("0");
-																		app.fn.countText(); 
+																		app.fn.countCmt(); 
 																		
 																		let cmtBox = $('<table/>').addClass("cminput").append(
 																				$('<tbody/>').append(

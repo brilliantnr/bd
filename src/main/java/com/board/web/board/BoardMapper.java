@@ -18,7 +18,7 @@ public interface BoardMapper {
 	public void insertComments(Map<?, ?> p);
 	public Comments detailComments(Map<?, ?> p);
 	public List<?> listComments(Map<?, ?> p);
-	public int countComments(Map<?, ?> p);
+	public int countComments(String p);
 	public void updateComments(Map<?, ?> p);
 	public void deleteComments(Map<?, ?> p);
 }

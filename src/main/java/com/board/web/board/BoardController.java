@@ -165,7 +165,11 @@ public class BoardController {
 		logger.info("p : "+p);
 		mapper.deleteComments(p);
 	}
-	
+	@GetMapping("/countCmt/{num}")
+	public int countComments(@PathVariable String num) {
+		logger.info(" countComments() 진입");
+		return mapper.countComments(num);
+	}
 	
 	
 	
