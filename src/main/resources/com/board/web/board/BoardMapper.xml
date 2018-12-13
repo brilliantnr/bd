@@ -146,7 +146,7 @@ UPDATE COMMENTS
 	SET CMT_WRITER = #{cmt_writer},
 		CMT_PW = #{cmt_pw},
 		CMT_CONTENT = #{cmt_content}
-	WHERE BR_NO = #{num};
+	WHERE BR_NO LIKE #{num} AND CMT_NO LIKE #{cmt_no}
 </update>
 <delete id="deleteComments">
 DELETE FROM COMMENTS
