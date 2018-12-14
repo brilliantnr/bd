@@ -13,6 +13,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<result property="pw" column="PW"/>
 	<result property="regidate" column="REGIDATE"/>
 	<result property="checkdelete" column="CHECKDELETE"/>
+	<result property="gr_root" column="GR_ROOT"/>
+	<result property="gr_ord" column="GR_ORD"/>
+	<result property="gr_lv" column="GR_LV"/>
 	
 	<result property="cmt_no" column="CMT_NO"/>
 	<result property="cmt_writer" column="CMT_WRITER"/>
@@ -23,10 +26,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <insert id="insertBoard">
 	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW) 
 	VALUES (#{title}, #{content} ,#{writer},#{pw});
+	
 </insert>
 
 <select id="listBoard"  resultMap="board">
-SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE	
+SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE,	
+		GR_ROOT,GR_ORD,GR_LV
 FROM	(
 	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
 	FROM (
@@ -86,7 +91,7 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 </select> -->
 
 <select id="detailBoard" resultType="com.board.web.board.Board">
-	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE 
+	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE ,GR_ROOT,GR_ORD,GR_LV
 	FROM T_BOARD
 	WHERE NUM LIKE #{num}
 </select>
