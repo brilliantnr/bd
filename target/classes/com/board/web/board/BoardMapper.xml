@@ -135,7 +135,7 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 <insert id="insertReply">
 <![CDATA[
 	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT, DEPTH) 
-	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{seqNum}, #{depth}+1);
+	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{parent}, #{depth}+1);
 ]]>
 </insert>
 

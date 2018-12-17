@@ -37,6 +37,10 @@ app.service=(()=>{
 				/* NO에 역순 rownum 넣기 */
 				let listNum = d.rowCount - j.rownum + 1;
 				let $seq_num = j.num ;
+				let $depth = j.depth;
+				
+				console.log("--------/board/list/ $seq_num : "+$seq_num);
+				console.log("--------/board/list/  $depth : "+$depth);
 				
 				$.getJSON($.ctx()+'/board/countCmt/'+$seq_num,d=>{
 					$("#count_cmt"+$seq_num).html("[ "+d+" ]");
@@ -67,12 +71,11 @@ app.service=(()=>{
 				/* 리스트 구성 
 				 * NO의 id = seqNum
 				 * */
-				/*.attr({src:$.img()+'/hyeri/banner1.jpg'})),*/
 				
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
 						$('<td/>').addClass("ellipsis").append(
-								$('<img/>').attr({name:"reply_img",style:"margin-left:"+(20*j.depth)+"px"}),
+								$('<img/>').attr({name:"reply_img",style:"margin-left:"+(20*$depth)+"px"}),
 								$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
 										console.log("detail 넘어가는 값 : "+$seq_num);
@@ -80,22 +83,13 @@ app.service=(()=>{
 									});
 								}),
 								$('<a/>').attr({id:"count_cmt"+$seq_num ,name:"count_cmt"}).addClass("count_cmt")
-								
-								/*$('<img/>'),
-								$('<a href="#"/>').attr({id:"title_"+j.num}).html(j.title).click(e=>{
-									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
-										console.log("detail 넘어가는 값 : "+$seq_num);
-										detail({seqNum : $seq_num, listNum : listNum});
-									});
-								}),
-								$('<a/>').attr({name:"count_cmt"}).addClass("count_cmt").html("[0]")*/
-								
 						),
 						$('<td/>').addClass("center ellipsis").html(j.writer),
 						$('<td/>').addClass("center").html(j.regidate)
 				).appendTo($('#tbody_list'));
 				
-				if(j.depth>0){
+				if($depth>=1){
+					console.log($seq_num+" :: $depth 1이상---------");
 					$('[name="reply_img"]').attr({src:$.ctx()+"/resources/icon_reply.png"});
 				};
 				
@@ -490,10 +484,7 @@ app.service=(()=>{
 															             }
 															           });
 																};
-											            	 
 											             }
-											             
-											             
 													});
 													
 													$.ajax({
@@ -519,10 +510,8 @@ app.service=(()=>{
 									)
 								)).appendTo($('#cmt_list'));
 					$('<li>').attr({style:"height: 1px; padding: 0; overflow: hidden; font: 0/0 arial; border-bottom-width: 1px; border-bottom-style: dotted;"}).appendTo($('#cmt_list'));
-			/*).appendTo($('#cmt_div'));*/
 			
 		})
-			/*).appendTo($('#cmt_div'));*/
 		});
 		
 		
@@ -541,6 +530,7 @@ app.service=(()=>{
 			$('#td_content3').html(d.detail.writer);
 			$('#td_content4').html(d.detail.content);
 			$('#td2').attr({name:d.detail.depth});
+			$('#td3').attr({name:d.detail.parent});
 			console.log("/board/detail/ d.detail.depth : "+d.detail.depth);
 		});
 		
@@ -556,19 +546,20 @@ app.service=(()=>{
 		$('#reply_btn').click(e=>{
 			console.log("reply_btn 클릭");
 			let $depth = $('#td2').attr('name');
-			console.log("reply_btn $depth "+$depth);
-			app.service.reply({seqNum:$seqNum, depth:$depth});
+			let $parent = $('#td3').attr('name');
+			console.log("reply_btn $depth "+$depth+", $parent :"+$parent);
+			app.service.reply({parent:$parent, depth:$depth});
 		});
 		
 	};
 	var reply=x=>{
-		/*@param ; {seqNum:$seqNum, depth:$depth}  */
+		/*@param ; {parent:$parent, depth:$depth}  */
 		console.log("app.page.reply 진입");
 		
-		let $seqNum =x.seqNum;
+		let $parent =x.parent;
 		let $depth = x.depth;
 		
-		console.log("seqNum : "+x.seqNum);
+		console.log("$parent : "+$parent);
 		console.log("$depth : "+$depth);
 		
 		$('#wrapper').html(app.page.inputBrd());
@@ -597,7 +588,6 @@ app.service=(()=>{
 			/* 유효성 검사 */
 			let $isValid= app.valid.isValid();
 			if($isValid){
-				console.log("유효성 검사 통과 seqNum: "+ x.seqNum);
 				$.ajax({
 		             url : $.ctx()+'/board/addReply',
 		             method : 'post',
@@ -607,7 +597,7 @@ app.service=(()=>{
 		            	 content :$content,
 		            	 writer :$writer, 
 		            	 pw : $pw,
-		            	 seqNum:$seqNum,
+		            	 parent:$parent,
 		            	 depth:$depth
 		             }),
 		             success : d=>{
@@ -621,7 +611,6 @@ app.service=(()=>{
 				
 			};
 		});
-		/*   add()와 동일  end    */
 		
 		
 		
