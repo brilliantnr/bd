@@ -14,6 +14,9 @@ public interface BoardMapper {
 	public void updateBoard(Map<?, ?> p);
 	public void deleteBoard(Map<?, ?> p);
 	
+	/* reply */
+	public void insertReply(Map<?, ?> p);
+	
 	/* 댓글 */
 	public void insertComments(Map<?, ?> p);
 	public Comments detailComments(Map<?, ?> p);

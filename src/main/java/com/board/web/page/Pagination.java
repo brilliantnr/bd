@@ -26,7 +26,7 @@ public Map<?, ?> excute(Map<?, ?> p) {
 	logger.info("pageNum : "+pageNum);
 	
 	int blockSize = 5; // 1~5, 6~10
-	int rowSize = 5; 
+	int rowSize = 10; 
 	
 	int rowCount =mapper.countTotalContents(p); //총 게시물의 수
 	int pageCount = (int) Math.ceil((double)rowCount / (double)rowSize); // 총페이지수

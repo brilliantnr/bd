@@ -13,9 +13,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<result property="pw" column="PW"/>
 	<result property="regidate" column="REGIDATE"/>
 	<result property="checkdelete" column="CHECKDELETE"/>
-	<result property="gr_root" column="GR_ROOT"/>
-	<result property="gr_ord" column="GR_ORD"/>
-	<result property="gr_lv" column="GR_LV"/>
+	<result property="parent" column="PARENT"/>
+	<result property="ord" column="ORD"/>
+	<result property="depth" column="DEPTH"/>
 	
 	<result property="cmt_no" column="CMT_NO"/>
 	<result property="cmt_writer" column="CMT_WRITER"/>
@@ -29,9 +29,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	
 </insert>
 
+
+
 <select id="listBoard"  resultMap="board">
-SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE,	
-		GR_ROOT,GR_ORD,GR_LV
+SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE	
+		,PARENT, ORD, DEPTH
 FROM	(
 	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
 	FROM (
@@ -91,7 +93,8 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 </select> -->
 
 <select id="detailBoard" resultType="com.board.web.board.Board">
-	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE ,GR_ROOT,GR_ORD,GR_LV
+	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE 
+		,PARENT, ORD, DEPTH
 	FROM T_BOARD
 	WHERE NUM LIKE #{num}
 </select>
@@ -124,6 +127,21 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 	SET CHECKDELETE ="Y"
 	WHERE NUM =#{num};
 </update>
+
+
+<!-- 
+********** 답글 ********** 
+-->
+<insert id="insertReply">
+<![CDATA[
+	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT, DEPTH) 
+	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{seqNum}, #{depth}+1);
+]]>
+</insert>
+
+
+
+
 
 
 

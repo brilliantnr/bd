@@ -33,6 +33,8 @@ public class BoardController {
 		map.put("keyword", keyword);
 		System.out.println("map.get keyword :  "+map.get("keyword"));
 		
+		
+		
 		pagination.excute(map);//페이지네이션
 		map.put("list", mapper.listBoard(map));
 		//System.out.println("map.get(\"list\")결과 : "+map.get("list"));
@@ -48,12 +50,20 @@ public class BoardController {
 		
 		map.put("detail", mapper.detailBoard(map));
 		//map.put("cmtList", mapper.listComments(map));
-		//logger.info("detail 결과 : "+map.get("detail"));
+		logger.info("detail 결과 : "+map.get("detail"));
 		
 		
 		return map;
 	}
 	
+	@PostMapping("/addReply")
+	public Map<String, Object> addReply(@RequestBody Map<String,Object> pm) {
+		logger.info(" addReply() 진입");
+		Map<String,Object> map = new HashMap<>();
+		logger.info("pm : "+pm);
+		mapper.insertReply(pm);
+		return map;
+	};
 	
 	
 	

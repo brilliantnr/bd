@@ -67,10 +67,12 @@ app.service=(()=>{
 				/* 리스트 구성 
 				 * NO의 id = seqNum
 				 * */
+				/*.attr({src:$.img()+'/hyeri/banner1.jpg'})),*/
+				
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
 						$('<td/>').addClass("ellipsis").append(
-								$('<img/>'),
+								$('<img/>').attr({name:"reply_img",style:"margin-left:"+(20*j.depth)+"px"}),
 								$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
 										console.log("detail 넘어가는 값 : "+$seq_num);
@@ -92,6 +94,10 @@ app.service=(()=>{
 						$('<td/>').addClass("center ellipsis").html(j.writer),
 						$('<td/>').addClass("center").html(j.regidate)
 				).appendTo($('#tbody_list'));
+				
+				if(j.depth>0){
+					$('[name="reply_img"]').attr({src:$.ctx()+"/resources/icon_reply.png"});
+				};
 				
 				/* 원글 삭제시 a태그 비활성화 */
 				if(j.checkdelete=="Y"){
@@ -279,245 +285,243 @@ app.service=(()=>{
 		
 		/* 댓글 입력창 START */
 		//기존 댓글 리스트 START
-		console.log("-----1111 -------");
 		$.getJSON($.ctx()+'/board/listCmt/'+$seqNum,d=>{
-			console.log("-----2222 -------");
-			console.log("----d.listCmt----"+d.listCmt);
-		/*	$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).append(*/
-				$.each(d.listCmt,(i,j)=>{
-					let $cmt_no = j.cmt_no;
-					let $cmt_writer = j.cmt_writer;
-					let $cmt_pw = j.cmt_pw;
-					let $cmt_content = j.cmt_content;
-					
-					console.log("j.cmt_no : "+j.cmt_no);
-					console.log("j.cmt_writer : "+j.cmt_writer);
-					console.log("j.cmt_pw : "+j.cmt_pw);
-					console.log("j.cmt_content : "+j.cmt_content);
-					
-					/*$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).append(*/
-						let $cmt_li=$('<li/>').attr({id:$cmt_no}).append(
-								$('<div/>').attr({style:"padding-top: 10px;"}).append(
-									$('<div/>').attr({style:"height: 20px;"}).append(
-											$('<i/>').addClass("fas fa-user"),
-											$('<span/>').attr({style:"margin: 0 0 0px 10px;"}).text(j.cmt_writer),
-											$('<p/>').attr({style:"float: right;margin: 0;padding-top: 3px;"}).append(
-													$('<a href="#"/>').html("수정").click(e=>{
-														/* 댓글 수정 버튼 클릭*/
-														var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
-														$.ajax({
-															 url : $.ctx()+'/board/validcmt/'+pwInput,
-															 method : 'post',
-												             contentType : 'application/json',
-												             data : JSON.stringify({
-												            	 pwInput :pwInput,
-												            	 num : $seqNum,
-												            	 cmt_no:$cmt_no
-												             }),
-												             success:d=>{
-												            	 if(d.auth===false){
-																		alert('비밀번호 확인해주세요');
-																	}else{
-																		alert('비밀번호 일치,댓글수정');
-																		console.log("$cmt_no : "+$cmt_no);
-																		
-																		//-------댓글 수정 화면 START ----------
-																		/* 입력 즉시 공백체크 */
-																		app.valid.cmtValid(); 
-																		$('#count_geul').html("0");
-																		app.fn.countCmt(); 
-																		
-																		let cmtBox = $('<table/>').addClass("cminput").append(
-																				$('<tbody/>').append(
-																					$('<tr/>').append(
-																						$('<td colspan="4"/>').append(
-																								$('<div/>').append(
-																										"작성자 : ",
-																										$('<input>').attr({id:"input_writer"}).val($cmt_writer)
-																										)
-																								),
-																						$('<td colspan="4"/>').append(
-																								$('<div/>').append(
-																										"비밀번호 : ",
-																										$('<input>').attr({id:"input_pw"})
-																										)
-																								)
-																							)
-																						,
-																					$('<tr/>').append(	
-																						$('<td colspan="7"/>').addClass("i2").append(
-																							$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(
-																								$('<textarea/>').text($cmt_content).attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 20px; height: 80px;"}).addClass("textarea m-tcol-c"),
-																								$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
-																										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
-																										$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
-																										"/",
-																										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("전체 입력 가능한 글자수"),
-																										$('<span/>').attr({style:"font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).html("300자")
-																										)
-																								
-																								
-																								
-																								)
-																						),
-																						$('<td/>').addClass("i3").append(
-																								$('<div/>').addClass("cmt_btn u_cbox_btn_upload _submitBtn").attr({style:"text-align: center;"}).append(
-																										$('<a/>').attr({href:"#",style:" font-size: 13px; font-weight: bold; line-height: 130px; text-align: center;display: block;width: 100%; height: 100%;"}).addClass("u_cbox_txt_upload _submitCmt").html("수정")
-																										.click(e=>{
-																											let $seqNum = $('#seqNum').attr('name');
-																											let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
-																											let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
-																											let $pw = $('#input_pw').val();
-																											
-																											console.log("----댓글입력시 $seqNum : "+$seqNum);
-																											/* 유효성 검사 */
-																											let v = app.valid.cmtValid();
-																											if(v){
-																												 $.ajax({
-																										             url : $.ctx()+'/board/updateComment',
-																										             method : 'put',
-																										             contentType : 'application/json',
-																										             data : JSON.stringify({
-																										            	 num : $seqNum,
-																										            	 cmt_no: $cmt_no,
-																										            	 cmt_content :$content,
-																										            	 cmt_writer :$writer, 
-																										            	 cmt_pw : $pw,
-																										             }),
-																										             success : d=>{
-																										            	alert('댓글 수정 완료 ');
-																										            	
-																										            	
-																										            	$('#wrapper').empty();
-																										         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
-																										         		$('#wrapper').html(app.page.detailBrd());
-																										         		app.service.detail({seqNum:$seqNum });
-																										             }
-																										           });
-																											}
-																										}
+			$.each(d.listCmt,(i,j)=>{
+				var $cmt_no = j.cmt_no;
+				var $cmt_writer = j.cmt_writer;
+				var $cmt_pw = j.cmt_pw;
+				var $cmt_content = j.cmt_content;
+				
+				console.log("j.cmt_no : "+j.cmt_no);
+				console.log("j.cmt_writer : "+j.cmt_writer);
+				console.log("j.cmt_pw : "+j.cmt_pw);
+				console.log("j.cmt_content : "+j.cmt_content);
+				console.log("$ord : "+j.ord);
+				console.log("$depth : "+j.depth);
+				
+				/*$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).append(*/
+					let $cmt_li=$('<li/>').attr({id:$cmt_no}).append(
+							$('<div/>').attr({style:"padding-top: 10px;"}).append(
+								$('<div/>').attr({style:"height: 20px;"}).append(
+										$('<i/>').addClass("fas fa-user"),
+										$('<span/>').attr({style:"margin: 0 0 0px 10px;"}).text(j.cmt_writer),
+										$('<p/>').attr({style:"float: right;margin: 0;padding-top: 3px;"}).append(
+												$('<a href="#"/>').html("수정").click(e=>{
+													/* 댓글 수정 버튼 클릭*/
+													var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
+													$.ajax({
+														 url : $.ctx()+'/board/validcmt/'+pwInput,
+														 method : 'post',
+											             contentType : 'application/json',
+											             data : JSON.stringify({
+											            	 pwInput :pwInput,
+											            	 num : $seqNum,
+											            	 cmt_no:$cmt_no
+											             }),
+											             success:d=>{
+											            	 if(d.auth===false){
+																	alert('비밀번호 확인해주세요');
+																}else{
+																	alert('비밀번호 일치,댓글수정');
+																	console.log("$cmt_no : "+$cmt_no);
+																	
+																	//-------댓글 수정 화면 START ----------
+																	/* 입력 즉시 공백체크 */
+																	app.valid.cmtValid(); 
+																	$('#count_geul').html("0");
+																	app.fn.countCmt(); 
+																	
+																	let cmtBox = $('<table/>').addClass("cminput").append(
+																			$('<tbody/>').append(
+																				$('<tr/>').append(
+																					$('<td colspan="4"/>').append(
+																							$('<div/>').append(
+																									"작성자 : ",
+																									$('<input>').attr({id:"input_writer"}).val($cmt_writer)
+																									)
+																							),
+																					$('<td colspan="4"/>').append(
+																							$('<div/>').append(
+																									"비밀번호 : ",
+																									$('<input>').attr({id:"input_pw"})
 																									)
 																							)
 																						)
+																					,
+																				$('<tr/>').append(	
+																					$('<td colspan="7"/>').addClass("i2").append(
+																						$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(
+																							$('<textarea/>').text($cmt_content).attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 20px; height: 80px;"}).addClass("textarea m-tcol-c"),
+																							$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
+																									$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
+																									$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
+																									"/",
+																									$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("전체 입력 가능한 글자수"),
+																									$('<span/>').attr({style:"font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).html("300자")
+																									)
+																							
+																							
+																							
+																							)
+																					),
+																					$('<td/>').addClass("i3").append(
+																							$('<div/>').addClass("cmt_btn u_cbox_btn_upload _submitBtn").attr({style:"text-align: center;"}).append(
+																									$('<a/>').attr({href:"#",style:" font-size: 13px; font-weight: bold; line-height: 130px; text-align: center;display: block;width: 100%; height: 100%;"}).addClass("u_cbox_txt_upload _submitCmt").html("수정")
+																									.click(e=>{
+																										let $seqNum = $('#seqNum').attr('name');
+																										let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
+																										let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
+																										let $pw = $('#input_pw').val();
+																										
+																										console.log("----댓글입력시 $seqNum : "+$seqNum);
+																										/* 유효성 검사 */
+																										let v = app.valid.cmtValid();
+																										if(v){
+																											 $.ajax({
+																									             url : $.ctx()+'/board/updateComment',
+																									             method : 'put',
+																									             contentType : 'application/json',
+																									             data : JSON.stringify({
+																									            	 num : $seqNum,
+																									            	 cmt_no: $cmt_no,
+																									            	 cmt_content :$content,
+																									            	 cmt_writer :$writer, 
+																									            	 cmt_pw : $pw,
+																									             }),
+																									             success : d=>{
+																									            	alert('댓글 수정 완료 ');
+																									            	
+																									            	
+																									            	$('#wrapper').empty();
+																									         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
+																									         		$('#wrapper').html(app.page.detailBrd());
+																									         		app.service.detail({seqNum:$seqNum });
+																									             }
+																									           });
+																										}
+																									}
+																								)
+																						)
 																					)
 																				)
-																		);
-																		//-------댓글 수정 화면 END ----------
-																		$('#'+$cmt_no).empty();
-																		$('#'+$cmt_no).append(cmtBox);
-																		
-																		
+																			)
+																	);
+																	//-------댓글 수정 화면 END ----------
+																	$('#'+$cmt_no).empty();
+																	$('#'+$cmt_no).append(cmtBox);
+																	
+																	
 
-																		
+																	
 /*																		$('#wrapper').empty();
  * 
 																		$('#wrapper').append($('<div/>').attr({id : 'contents'}));*/
-																		
-																	};
-												            	 
-												             }
-												             
-												             
-														});
-														
-														
-														
-														
-														
-														
-														$.ajax({
-															url: $.ctx()+'/board/updateCmt',
-															method: 'PUT',
-															contentType:'application/json',
-															data: JSON.stringify({
-																num:$seqNum,
-																/*cmt_writer:
-																cmt_pw:,
-																cmt_content:*/
-																
-															})
-														});//-------0000-------
-														
-														
-														/*
-														 * 
-														 * 
-														 * 
-														 * 
-														*/
-														
-													}),
-													$('<a href="#"/>').html("삭제").attr({style:"margin-left: 10px;"}).click(e=>{
-														/* 삭제 버튼 클릭 */
+																	
+																};
+											            	 
+											             }
+											             
+											             
+													});
+													
+													
+													
+													
+													
+													
+													$.ajax({
+														url: $.ctx()+'/board/updateCmt',
+														method: 'PUT',
+														contentType:'application/json',
+														data: JSON.stringify({
+															num:$seqNum,
+															/*cmt_writer:
+															cmt_pw:,
+															cmt_content:*/
+															
+														})
+													});//-------0000-------
+													
+													
+													/*
+													 * 
+													 * 
+													 * 
+													 * 
+													*/
+													
+												}),
+												$('<a href="#"/>').html("삭제").attr({style:"margin-left: 10px;"}).click(e=>{
+													/* 삭제 버튼 클릭 */
 
-														var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
-														$.ajax({
-															 url : $.ctx()+'/board/validcmt/'+pwInput,
-															 method : 'post',
-												             contentType : 'application/json',
-												             data : JSON.stringify({
-												            	 pwInput :pwInput,
-												            	 num : $seqNum,
-												            	 cmt_no:$cmt_no
-												             }),
-												             success:d=>{
-												            	 if(d.auth===false){
-																		alert('비밀번호 확인해주세요');
-																	}else{
-																		alert('비밀번호 일치,삭제');
-																		console.log("삭제 $cmt_no : "+$cmt_no);
-																		 $.ajax({
-																             url : $.ctx()+'/board/deleteComment',
-																             method : 'delete',
-																             contentType : 'application/json',
-																             data : JSON.stringify({
-																            	 num : $seqNum,
-																            	 cmt_no: $cmt_no,
-																            	 /*cmt_content :$content,
-																            	 cmt_writer :$writer, 
-																            	 cmt_pw : $pw,*/
-																             }),
-																             success : d=>{
-																            	alert('댓글 삭제 완료 ');
-																            	$('#'+$cmt_no).empty();
-																				$('#'+$cmt_no).append('<div style="margin:20px 0 20px 0;">작성자에 의해 삭제된 댓글입니다.</div>');
-																            	
-																            	
-																             }
-																           });
-																	};
-												            	 
-												             }
-												             
-												             
-														});
-														
-														$.ajax({
-															url: $.ctx()+'/board/updateCmt',
-															method: 'PUT',
-															contentType:'application/json',
-															data: JSON.stringify({
-																num:$seqNum,
-																/*cmt_writer:
-																cmt_pw:,
-																cmt_content:*/
-																
-															})
-														});//-------0000-------
-														
-														//삭제끝
-													})
-													)
-											
-									),
-									$('<p/>').attr({style:"padding-left: 40px;padding: 10px 0px 10px 50px; margin: 3px 0 0 0; line-height: 15px; text-align: left; word-break: break-all; word-wrap: break-word;"}).append(
-										$('<span/>').attr({style:"line-height: 22px;"}).text(j.cmt_content)
-										)
-									)).appendTo($('#cmt_list'));
-						$('<li>').attr({style:"height: 1px; padding: 0; overflow: hidden; font: 0/0 arial; border-bottom-width: 1px; border-bottom-style: dotted;"}).appendTo($('#cmt_list'));
-				/*).appendTo($('#cmt_div'));*/
-				
-			})
+													var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
+													$.ajax({
+														 url : $.ctx()+'/board/validcmt/'+pwInput,
+														 method : 'post',
+											             contentType : 'application/json',
+											             data : JSON.stringify({
+											            	 pwInput :pwInput,
+											            	 num : $seqNum,
+											            	 cmt_no:$cmt_no
+											             }),
+											             success:d=>{
+											            	 if(d.auth===false){
+																	alert('비밀번호 확인해주세요');
+																}else{
+																	alert('비밀번호 일치,삭제');
+																	console.log("삭제 $cmt_no : "+$cmt_no);
+																	 $.ajax({
+															             url : $.ctx()+'/board/deleteComment',
+															             method : 'delete',
+															             contentType : 'application/json',
+															             data : JSON.stringify({
+															            	 num : $seqNum,
+															            	 cmt_no: $cmt_no,
+															            	 /*cmt_content :$content,
+															            	 cmt_writer :$writer, 
+															            	 cmt_pw : $pw,*/
+															             }),
+															             success : d=>{
+															            	alert('댓글 삭제 완료 ');
+															            	$('#'+$cmt_no).empty();
+																			$('#'+$cmt_no).append('<div style="margin:20px 0 20px 0;">작성자에 의해 삭제된 댓글입니다.</div>');
+															            	
+															            	
+															             }
+															           });
+																};
+											            	 
+											             }
+											             
+											             
+													});
+													
+													$.ajax({
+														url: $.ctx()+'/board/updateCmt',
+														method: 'PUT',
+														contentType:'application/json',
+														data: JSON.stringify({
+															num:$seqNum,
+															/*cmt_writer:
+															cmt_pw:,
+															cmt_content:*/
+															
+														})
+													});//-------0000-------
+													
+													//삭제끝
+												})
+												)
+										
+								),
+								$('<p/>').attr({style:"padding-left: 40px;padding: 10px 0px 10px 50px; margin: 3px 0 0 0; line-height: 15px; text-align: left; word-break: break-all; word-wrap: break-word;"}).append(
+									$('<span/>').attr({style:"line-height: 22px;"}).text(j.cmt_content)
+									)
+								)).appendTo($('#cmt_list'));
+					$('<li>').attr({style:"height: 1px; padding: 0; overflow: hidden; font: 0/0 arial; border-bottom-width: 1px; border-bottom-style: dotted;"}).appendTo($('#cmt_list'));
+			/*).appendTo($('#cmt_div'));*/
+			
+		})
 			/*).appendTo($('#cmt_div'));*/
 		});
 		
@@ -536,9 +540,11 @@ app.service=(()=>{
 			$('#td_content2').html(d.detail.title);
 			$('#td_content3').html(d.detail.writer);
 			$('#td_content4').html(d.detail.content);
+			$('#td2').attr({name:d.detail.depth});
+			console.log("/board/detail/ d.detail.depth : "+d.detail.depth);
 		});
 		
-		// 수정 버튼 클릭시 =========================================================
+		// detail 화면에서  버튼 클릭시 =========================================================
 		$('#update_btn').click(e=>{
 			console.log("update_btn 클릭");
 			validation({seqNum:$seqNum, move:"updateBrd"});
@@ -547,8 +553,80 @@ app.service=(()=>{
 			console.log("delete_btn 클릭");
 			validation({seqNum:$seqNum, move:"deleteBrd"});
 		});
+		$('#reply_btn').click(e=>{
+			console.log("reply_btn 클릭");
+			let $depth = $('#td2').attr('name');
+			console.log("reply_btn $depth "+$depth);
+			app.service.reply({seqNum:$seqNum, depth:$depth});
+		});
 		
 	};
+	var reply=x=>{
+		/*@param ; {seqNum:$seqNum, depth:$depth}  */
+		console.log("app.page.reply 진입");
+		
+		let $seqNum =x.seqNum;
+		let $depth = x.depth;
+		
+		console.log("seqNum : "+x.seqNum);
+		console.log("$depth : "+$depth);
+		
+		$('#wrapper').html(app.page.inputBrd());
+		//
+		
+		//app.page.fileUpload();
+		/*   add()와 동일  start    */
+		/* 입력 즉시 공백체크 */
+		app.valid.blankValid();
+		
+		/* 글자수 세기 */
+		$('#count_geul').html("0");
+		app.fn.countText(); 
+		
+		// add 완료 버튼
+		$('#complete_btn').click(e=>{
+			let $title = $('#input_title').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim(); //태그입력방지
+			let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
+			let $writer = $('#input_writer').val().trim();
+			let $pw = $('#input_pw').val();
+			
+			console.log("$title : "+$title);
+			console.log("$writer : "+$writer);
+			console.log("$pw : "+$pw);
+			
+			/* 유효성 검사 */
+			let $isValid= app.valid.isValid();
+			if($isValid){
+				console.log("유효성 검사 통과 seqNum: "+ x.seqNum);
+				$.ajax({
+		             url : $.ctx()+'/board/addReply',
+		             method : 'post',
+		             contentType : 'application/json',
+		             data : JSON.stringify({
+		            	 title : $title,
+		            	 content :$content,
+		            	 writer :$writer, 
+		            	 pw : $pw,
+		            	 seqNum:$seqNum,
+		            	 depth:$depth
+		             }),
+		             success : d=>{
+		            	alert('게시글 입력 완료 ');
+		            	$('#wrapper').empty();
+		         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
+		            	app.page.listBrd();
+		         		list({pageNum:1});
+		             }
+		           });
+				
+			};
+		});
+		/*   add()와 동일  end    */
+		
+		
+		
+	};
+	
 	var validation=x=>{
 		/* @param seqNum
 		 * @param move
@@ -617,6 +695,7 @@ app.service=(()=>{
 	return{init:init,
 			list:list,
 			add:add,
+			reply:reply,
 			detail:detail,
 			validation:validation
 			};
@@ -1105,8 +1184,9 @@ app.page=(()=>{
 	           
 	              +'<div id="btn_div" style="text-align: right; margin: 0 0 50px;">'
 	                +'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'
-	                +'<button id="update_btn" class="btn btn-primary">수정</button>'
-	                +'<button id="delete_btn" class="btn btn-primary">삭제</button>'
+	                +'<button id="reply_btn" class="btn btn-primary" style="margin-left: 5px;">답글</button>'
+	                +'<button id="update_btn" class="btn btn-primary" style="margin-left: 5px;">수정</button>'
+	                +'<button id="delete_btn" class="btn btn-primary" style="margin-left: 5px;">삭제</button>'
 	              +'</div>'
 	              
 	              /* 댓글 cmt_div START*/
