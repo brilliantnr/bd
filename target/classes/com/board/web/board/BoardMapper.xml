@@ -39,11 +39,12 @@ FROM	(
 	FROM (
 		SELECT  A.*
 		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
-		WHERE CHECKDELETE IS NULL 
+		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
+		
 		<if test="keyword!='undefined' and keyword!=''">
-			AND TITLE LIKE CONCAT('%', #{keyword}, '%')
+			AND (TITLE LIKE CONCAT('%', #{keyword}, '%'))
 		</if>
-		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC ,ORD
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC, ORD IS NULL DESC, ORD DESC
 		) T
 	) S	
 WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
@@ -104,11 +105,30 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 <select id="countTotalContents" resultType="int">
 	SELECT COUNT(*) AS COUNT  
 	FROM T_BOARD 
-	WHERE CHECKDELETE IS NULL 
+	WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
 	<if test="keyword!='undefined' and keyword!=''">
 		AND TITLE LIKE CONCAT('%', #{keyword}, '%')
 	</if>
 </select>
+
+<select id="countlist" resultType="int">
+SELECT MAX(ROWNUM)
+FROM	(
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
+		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
+		<if test="keyword!='undefined' and keyword!=''">
+		AND TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		GROUP BY IF(ISNULL(PARENT),NUM,PARENT)
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC, ORD IS NULL DESC, ORD DESC
+		) T
+	) S	
+
+</select>
+
 <update id="updateBoard">
 	UPDATE T_BOARD 
 	SET TITLE = #{title},
@@ -124,7 +144,10 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 </delete> -->
 <update id="deleteBoard">
 	UPDATE T_BOARD
-	SET CHECKDELETE ="Y"
+	SET 
+		CHECKDELETE ="Y",
+	 	TITLE ='', 
+	 	CONTENT =''
 	WHERE NUM =#{num};
 </update>
 

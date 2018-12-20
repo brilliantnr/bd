@@ -26,47 +26,44 @@ public class BoardController {
 	
 	@PostMapping("/add")
 	public Map<String, Object> add(@RequestBody Map<String,Object> pm) {
-		logger.info(" add() 진입");
+		logger.info("==== add() 진입");
 		Map<String,Object> map = new HashMap<>();
-		logger.info("pm : "+pm);
-		System.out.println(pm.get("title"));
+		//logger.info("pm : "+pm);
+		//System.out.println(pm.get("title"));
 		mapper.insertBoard(pm);
 		return map;
 	};
 	
 	@GetMapping("/detail/{num}")
 	public Map<String,Object> detailBoard(@PathVariable String num) {
-		logger.info(" detail() 진입 ");
+		logger.info("==== detail() 진입 ");
 		Map<String,Object> map = new HashMap<>();
 		map.put("num", num);
-		logger.info("num : "+map.get("num"));
-		
 		map.put("detail", mapper.detailBoard(map));
+		//logger.info("num : "+map.get("num"));
 		//map.put("cmtList", mapper.listComments(map));
-		logger.info("detail 결과 : "+map.get("detail"));
+		//logger.info("detail 결과 : "+map.get("detail"));
 		return map;
 	};
 
 	
 	@GetMapping("/list/{pageNo}/{keyword}")
 	public Map<String,Object> listBoard(@PathVariable String pageNo, @PathVariable Object keyword) {
-		logger.info(" list() 진입 ");
+		logger.info("==== list() 진입 ");
 		Map<String,Object> map = new HashMap<>();
-		
 		map.put("pageNo", pageNo);
 		map.put("keyword", keyword);
-		System.out.println("map.get keyword :  "+map.get("keyword"));
-		
 		pagination.excute(map);//페이지네이션
 		map.put("list", mapper.listBoard(map));
-		System.out.println("------d.list 결과 : \n"+map.get("list"));
+		map.put("listCount", mapper.countlist(map));
+		//System.out.println("map.get keyword :  "+map.get("keyword"));
+		//System.out.println("------d.list 결과 : \n"+map.get("list"));
 		return map;
 	};
 	
 	@PutMapping("/update")
 	public void updateBrd(@RequestBody Map<String,Object> p){
-		logger.info(" updateBrd() 진입");
-		logger.info("p : "+p);
+		logger.info("==== updateBrd() 진입");
 		mapper.updateBoard(p);
 	};
 	/*@DeleteMapping("/delete")
@@ -77,8 +74,8 @@ public class BoardController {
 	}*/
 	@PutMapping("/delete")
 	public void deleteBrd(@RequestBody Map<String,Object> p){
-		logger.info(" deleteBrd() 진입");
-		logger.info("p : "+p);
+		logger.info("==== deleteBrd() 진입");
+		//logger.info("p : "+p);
 		mapper.deleteBoard(p);
 	};
 	
@@ -89,22 +86,22 @@ public class BoardController {
 	*/	
 	@PostMapping("/addReply")
 	public Map<String, Object> addReply(@RequestBody Map<String,Object> pm) {
-		logger.info(" addReply() 진입");
+		logger.info("==== addReply() 진입");
 		Map<String,Object> map = new HashMap<>();
-		logger.info("pm : "+pm);
+		//logger.info("pm : "+pm);
 		mapper.insertReply(pm);
 		return map;
 	};
 	/* ord조회 */
 	@GetMapping("/chkOrd/{parent}")
 	public Map<String,Object> checkOrd(@PathVariable String parent) {
-		logger.info(" checkOrd() 진입 ");
+		logger.info("==== checkOrd() 진입 ");
 		Map<String,Object> map = new HashMap<>();
 		
 		map.put("parent", parent);
 		map.put("lastOrd", mapper.checkOrd(map));
-		System.out.println("parent : "+map.get("parent"));
-		System.out.println("------d.lastOrd 결과 \\n : "+map.get("lastOrd"));
+		/*System.out.println("parent : "+map.get("parent"));
+		System.out.println("------d.lastOrd 결과 \\n : "+map.get("lastOrd"));*/
 		return map;
 	};
 	

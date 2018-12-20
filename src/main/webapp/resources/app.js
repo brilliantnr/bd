@@ -29,16 +29,34 @@ app.service=(()=>{
 		$('#pagination').remove();
 
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
+			var i=1;
+			
 			$.each(d.list,(i,j)=>{
-				/* NO에 역순 rownum 넣기 */
-				let listNum = d.rowCount - j.rownum + 1;
 				let $seq_num = j.num ;
 				let $depth = j.depth;
 				let $ord = j.ord;
 				let $parent = j.parent;
-				console.log("--------d.list의 j.parent------"+$parent);
+				
+				let $rowCount=d.rowCount;
+				let $listCount = d.listCount;
+				
+				let $checkdelete = j.checkdelete;
+				
+				let listNum = $rowCount - j.rownum + 1;
+				
+				//let listNum = d.rowCount - j.rownum + 1;
+				if($parent!=null ||$checkdelete=="Y"){
+					listNum="("+listNum+")  "+$ord+"-"+$depth;
+				}else{
+					listNum = $rowCount - j.rownum + 1;
+					console.log("listNum++  "+listNum);
+					/*listNum = i++;
+					console.log("i++  "+listNum);*/
+				};
 				
 				
+				
+				/* 댓글수 표기 */
 				$.getJSON($.ctx()+'/board/countCmt/'+$seq_num,d=>{
 					$("#count_cmt"+$seq_num).html("[ "+d+" ]");
 				});
@@ -47,6 +65,7 @@ app.service=(()=>{
 					j.title="원글이 삭제되었습니다";
 					j.writer="";
 					j.regidate="";
+					$('#count_cmt'+$seq_num).attr({style:"visibility: hidden;"});
 				}else{
 					var transTime=x=>{
 						let year=new Date(x).getFullYear();
@@ -77,25 +96,33 @@ app.service=(()=>{
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
 						$('<td/>').addClass("ellipsis").append(
-								$('<img/>').attr({name:"reply_img",style:"margin-left:"+(20*$depth)+"px"}),
-								$('<span/>').attr({id:"parent_"+$seq_num, name:$parent}),
-								$('<span/>').attr({id:"ord_"+$seq_num, name:$ord}),
-								$('<span/>').attr({id:"depth_"+$seq_num, name:$depth}),
-								$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
-									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
-										/* detail 페이지로 넘어가기 */
-										console.log("detail 넘어 가는 값 : "+$seq_num);
-										detail({seqNum : $seq_num, listNum : listNum
-											/*, parent:$parent, depth:$depth*/
-											});
-										
-									});
-								}),
-								$('<a/>').attr({id:"count_cmt"+$seq_num ,name:"count_cmt"}).addClass("count_cmt")
-						),
+								$('<div/>').attr({style:"white-space: nowrap; text-overflow: ellipsis;overflow: hidden;width: 90%;float: left;"}).append(
+									$('<img/>').attr({name:"reply_img",style:"margin-left:"+(25*$depth)+"px"}),
+									$('<span/>').attr({id:"parent_"+$seq_num, name:$parent}),
+									$('<span/>').attr({id:"ord_"+$seq_num, name:$ord}),
+									$('<span/>').attr({id:"depth_"+$seq_num, name:$depth}),
+									$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
+										$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
+											/* detail 페이지로 넘어가기 */
+											console.log("detail 넘어 가는 값 : "+$seq_num);
+											detail({seqNum : $seq_num, listNum : listNum
+												/*, parent:$parent, depth:$depth*/
+												});
+										});
+									})
+							),
+							$('<div/>').attr({style:"float: left;"}).append(
+									$('<a/>').attr({id:"count_cmt"+$seq_num ,name:"count_cmt"}).addClass("count_cmt")
+									)
+								),
 						$('<td/>').addClass("center ellipsis").html(j.writer),
 						$('<td/>').addClass("center").html(j.regidate)
 				).appendTo($('#tbody_list'));
+				
+				//원글 삭제시 댓글표시도 숨기기
+				if(j.checkdelete=="Y"){
+					$('#count_cmt'+$seq_num).attr({style:"visibility: hidden;"});
+				}
 				
 				
 				console.log($seq_num+" :: $depth-------"+$depth);
