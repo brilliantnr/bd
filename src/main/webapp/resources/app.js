@@ -27,20 +27,17 @@ app.service=(()=>{
 	var list=x=>{
 		$('tbody').empty();
 		$('#pagination').remove();
-		/*
-		console.log('#### app.service.list 진입 ####');
-		console.log('--list x.pageNum : '+x.pageNum);
-		console.log('--list x.keyword : '+x.keyword);
-		*/
+
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
 			$.each(d.list,(i,j)=>{
 				/* NO에 역순 rownum 넣기 */
 				let listNum = d.rowCount - j.rownum + 1;
 				let $seq_num = j.num ;
 				let $depth = j.depth;
+				let $ord = j.ord;
+				let $parent = j.parent;
+				console.log("--------d.list의 j.parent------"+$parent);
 				
-				console.log("--------/board/list/ $seq_num : "+$seq_num);
-				console.log("--------/board/list/  $depth : "+$depth);
 				
 				$.getJSON($.ctx()+'/board/countCmt/'+$seq_num,d=>{
 					$("#count_cmt"+$seq_num).html("[ "+d+" ]");
@@ -68,18 +65,30 @@ app.service=(()=>{
 				};
 
 				
-				/* 리스트 구성 
-				 * NO의 id = seqNum
-				 * */
+				/* ============================
+				 * 리스트 구성 
+				 * "num_"+$seq_num
+				 * #num_130 
+				 * #parent_130  에 name:$parent
+				 * #depth_130 에 name:$depth
+				 * ============================*/
+				
 				
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
 						$('<td/>').addClass("ellipsis").append(
 								$('<img/>').attr({name:"reply_img",style:"margin-left:"+(20*$depth)+"px"}),
+								$('<span/>').attr({id:"parent_"+$seq_num, name:$parent}),
+								$('<span/>').attr({id:"ord_"+$seq_num, name:$ord}),
+								$('<span/>').attr({id:"depth_"+$seq_num, name:$depth}),
 								$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
 									$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
-										console.log("detail 넘어가는 값 : "+$seq_num);
-										detail({seqNum : $seq_num, listNum : listNum});
+										/* detail 페이지로 넘어가기 */
+										console.log("detail 넘어 가는 값 : "+$seq_num);
+										detail({seqNum : $seq_num, listNum : listNum
+											/*, parent:$parent, depth:$depth*/
+											});
+										
 									});
 								}),
 								$('<a/>').attr({id:"count_cmt"+$seq_num ,name:"count_cmt"}).addClass("count_cmt")
@@ -88,10 +97,16 @@ app.service=(()=>{
 						$('<td/>').addClass("center").html(j.regidate)
 				).appendTo($('#tbody_list'));
 				
-				if($depth>=1){
-					console.log($seq_num+" :: $depth 1이상---------");
+				
+				console.log($seq_num+" :: $depth-------"+$depth);
+				console.log($seq_num+" :: $ord-------"+$ord);
+				/*if(!$depth=='undefined'){
+					$('[name="reply_img"]').attr({src:$.ctx()+"/resources/icon_reply.png"});
+				};*/
+				if(!$parent=='undefined'){
 					$('[name="reply_img"]').attr({src:$.ctx()+"/resources/icon_reply.png"});
 				};
+				
 				
 				/* 원글 삭제시 a태그 비활성화 */
 				if(j.checkdelete=="Y"){
@@ -269,31 +284,83 @@ app.service=(()=>{
 	};
 	
 	var detail=x=>{
+		/* ============================
+		 * 상세페이지  
+		 * @ seqNum
+		 * @ listNum
+		 * ============================*/
+		var $seqNum = x.seqNum;
+		console.log("--3333333 detail=x.seqNum-"+$seqNum);
+		$('#seqNum').attr({name:$seqNum});
 		
 		$('#wrapper').html(app.page.detailBrd());
 		$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).appendTo($('#cmt_div'));
 		
+		//기본정보 고정시키기 START
+		$.getJSON($.ctx()+'/board/detail/'+$seqNum,d=>{
+			console.log("'/board/detail/'+$seqNum : "+$seqNum);
+			let $depth = d.detail.depth;
+			let $ord = d.detail.ord;
+			console.log("---getJSON---$ord------"+$ord);
+			let $parent = d.detail.parent;
+			
+			$('#seqNum').attr({name:$seqNum});
+			$('#depth').attr({name:$depth});
+			$('#ord').attr({name:$ord});
+			$('#parent').attr({name:$parent});
+			
+			$('#td_content1').html(x.listNum);
+			$('#td_content2').html(d.detail.title);
+			$('#td_content3').html(d.detail.writer);
+			$('#td_content4').html(d.detail.content);
+			
+		});
 		
-		var $seqNum = x.seqNum;
-		$('#seqNum').attr({name:$seqNum});
+		
+		
+		//기본정보 고정시키기 END
+		
+		
 		
 		/* 댓글 입력창 START */
 		//기존 댓글 리스트 START
 		$.getJSON($.ctx()+'/board/listCmt/'+$seqNum,d=>{
+			$.getJSON($.ctx()+'/board/detail/'+$seqNum,d=>{
+				console.log("'/board/detail/'+$seqNum : "+$seqNum);
+				let $depth = d.detail.depth;
+				let $ord = d.detail.ord;
+				console.log("---getJSON---$ord------"+$ord);
+				let $parent = d.detail.parent;
+				
+				$('#seqNum').attr({name:$seqNum});
+				$('#depth').attr({name:$depth});
+				$('#ord').attr({name:$ord});
+				$('#parent').attr({name:$parent});
+				
+				$('#td_content1').html(x.listNum);
+				$('#td_content2').html(d.detail.title);
+				$('#td_content3').html(d.detail.writer);
+				$('#td_content4').html(d.detail.content);
+				
+			});
 			$.each(d.listCmt,(i,j)=>{
 				var $cmt_no = j.cmt_no;
 				var $cmt_writer = j.cmt_writer;
 				var $cmt_pw = j.cmt_pw;
 				var $cmt_content = j.cmt_content;
+				$cmt_writer.replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
+				$cmt_content.replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;");
 				
+				/*
 				console.log("j.cmt_no : "+j.cmt_no);
 				console.log("j.cmt_writer : "+j.cmt_writer);
 				console.log("j.cmt_pw : "+j.cmt_pw);
 				console.log("j.cmt_content : "+j.cmt_content);
 				console.log("$ord : "+j.ord);
 				console.log("$depth : "+j.depth);
+				*/
 				
-				/*$('<ul/>').addClass("cmlist").attr({id:"cmt_list"}).append(*/
+				/*댓글 화면 */
 					let $cmt_li=$('<li/>').attr({id:$cmt_no}).append(
 							$('<div/>').attr({style:"padding-top: 10px;"}).append(
 								$('<div/>').attr({style:"height: 20px;"}).append(
@@ -344,8 +411,8 @@ app.service=(()=>{
 																					,
 																				$('<tr/>').append(	
 																					$('<td colspan="7"/>').addClass("i2").append(
-																						$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(
-																							$('<textarea/>').text($cmt_content).attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 20px; height: 80px;"}).addClass("textarea m-tcol-c"),
+																						$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(  //style="white-space: pre-wrap; height:350px"
+																							$('<textarea/>').text($cmt_content).attr({id:"input_content", style:"white-space: pre-wrap; overflow: hidden; line-height: 20px; height: 80px;"}).addClass("textarea m-tcol-c"),
 																							$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
 																									$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
 																									$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
@@ -437,13 +504,6 @@ app.service=(()=>{
 													});//-------0000-------
 													
 													
-													/*
-													 * 
-													 * 
-													 * 
-													 * 
-													*/
-													
 												}),
 												$('<a href="#"/>').html("삭제").attr({style:"margin-left: 10px;"}).click(e=>{
 													/* 삭제 버튼 클릭 */
@@ -506,7 +566,7 @@ app.service=(()=>{
 										
 								),
 								$('<p/>').attr({style:"padding-left: 40px;padding: 10px 0px 10px 50px; margin: 3px 0 0 0; line-height: 15px; text-align: left; word-break: break-all; word-wrap: break-word;"}).append(
-									$('<span/>').attr({style:"line-height: 22px;"}).text(j.cmt_content)
+									$('<span/>').attr({style:"white-space: pre-line;  line-height: 22px;"}).text(j.cmt_content)
 									)
 								)).appendTo($('#cmt_list'));
 					$('<li>').attr({style:"height: 1px; padding: 0; overflow: hidden; font: 0/0 arial; border-bottom-width: 1px; border-bottom-style: dotted;"}).appendTo($('#cmt_list'));
@@ -518,21 +578,13 @@ app.service=(()=>{
 		//기존 댓글 리스트 END
 		var cmt = app.page.cmtTable();
 		cmt.appendTo($('#cmt_div'));
+		
 		app.valid.blankValid(); 
 		$('#count_geul').html("0");
 		app.fn.countCmt(); 
 		/* 댓글 입력창 END */
 		
 		
-		$.getJSON($.ctx()+'/board/detail/'+$seqNum,d=>{
-			$('#td_content1').html(x.listNum);
-			$('#td_content2').html(d.detail.title);
-			$('#td_content3').html(d.detail.writer);
-			$('#td_content4').html(d.detail.content);
-			$('#td2').attr({name:d.detail.depth});
-			$('#td3').attr({name:d.detail.parent});
-			console.log("/board/detail/ d.detail.depth : "+d.detail.depth);
-		});
 		
 		// detail 화면에서  버튼 클릭시 =========================================================
 		$('#update_btn').click(e=>{
@@ -543,24 +595,79 @@ app.service=(()=>{
 			console.log("delete_btn 클릭");
 			validation({seqNum:$seqNum, move:"deleteBrd"});
 		});
+		
+		
+		/*let depth=$('#depth').attr('name');
+		if(depth=='2' ||depth=='3'  ){
+			//   ?????
+			$('#reply_btn').attr({style:"visibility: hidden;"});
+		};*/
+		
 		$('#reply_btn').click(e=>{
-			console.log("reply_btn 클릭");
-			let $depth = $('#td2').attr('name');
-			let $parent = $('#td3').attr('name');
-			console.log("reply_btn $depth "+$depth+", $parent :"+$parent);
-			app.service.reply({parent:$parent, depth:$depth});
+			let $depth = $('#depth').attr('name');
+			let $ord = $('#ord').attr('name');
+			let $parent = $('#parent').attr('name');
+			let push_parent = '';
+			let push_ord='';
+			
+			$.getJSON($.ctx()+'/board/chkOrd/'+$seqNum,d=>{
+				let $lastOrd = d.lastOrd;
+				push_ord=parseInt($lastOrd)+1;
+
+				console.log("d.lastOrd : "+$lastOrd);
+				console.log("parseInt($lastOrd)+1; : "+(parseInt($lastOrd)+1));
+				console.log("------1111-제이슨후-push_ord--"+push_ord);	
+				
+				console.log("======= "+$seqNum+" 현 게시물에서 답글 버튼 클릭 후 ===");
+				console.log("===$parent : "+$parent);
+				console.log("===$ord : "+$ord);  // undefined	
+				console.log("===$depth : "+$depth);
+				//getJSON 리스트
+				
+				if($parent=='0'){
+					console.log("0이니까 최초 답글. parent에 $seqNum 입력할거야 "+$seqNum);
+					
+					if(typeof $ord=='undefined'){
+						console.log("111111$ord 가 undefined 이야");
+						$ord = 0;
+					};
+					push_parent = $seqNum;
+					
+					
+					//push_ord = parseInt($ord)+1;
+					
+					console.log("------1111-$parent=='0'-push_ord--: "+push_ord);	
+					console.log("------1111-$parent=='0'-push_parent-- : "+push_parent);	
+					app.service.reply({parent:push_parent,ord:push_ord, depth:$depth});	
+					
+				}else{
+					console.log("parent 있으니까  $parent 입력할거야 "+$parent);
+					push_parent = $parent;
+					push_ord=$ord;
+					app.service.reply({parent:push_parent,ord:push_ord, depth:$depth});
+				};
+				
+				
+			});
+			
 		});
 		
 	};
 	var reply=x=>{
-		/*@param ; {parent:$parent, depth:$depth}  */
-		console.log("app.page.reply 진입");
+		/*@param ; 
+		 * parent
+		 * ord
+		 * depth
+		 *   */
+		console.log("-------------app.page.reply 진입");
 		
 		let $parent =x.parent;
 		let $depth = x.depth;
+		let $ord=x.ord;
 		
-		console.log("$parent : "+$parent);
+		/*console.log("$parent : "+$parent);
 		console.log("$depth : "+$depth);
+		console.log("$ord : "+$ord);*/
 		
 		$('#wrapper').html(app.page.inputBrd());
 		//
@@ -598,6 +705,7 @@ app.service=(()=>{
 		            	 writer :$writer, 
 		            	 pw : $pw,
 		            	 parent:$parent,
+		            	 ord:$ord,
 		            	 depth:$depth
 		             }),
 		             success : d=>{
@@ -903,7 +1011,7 @@ app.page=(()=>{
 						$('<td/>').append(
 								$('<div/>').append(
 										"비밀번호 : ",
-										$('<input>').attr({id:"input_pw"})
+										$('<input>').attr({id:"input_pw", type:"password"})
 										)
 								)
 							)
@@ -952,7 +1060,7 @@ app.page=(()=>{
 										            	$('#wrapper').empty();
 										         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
 										         		$('#wrapper').html(app.page.detailBrd());
-										         		app.service.detail({seqNum:d.detail.num });
+										         		app.service.detail({seqNum:$seqNum });
 										             }
 										           });
 											}
@@ -1147,7 +1255,12 @@ app.page=(()=>{
 		            +'<table class="table table-striped" style="text-align:center; border:1px solid #dddddd;">'
 		              +'<thead>'
 		                +'<tr>'
-		                  +'<th colspan="2" id="seqNum"   style="background-color:#eeeeee; text-align: center;">게시글</th>'
+		                  +'<th colspan="2" id="" style="background-color:#eeeeee; text-align: center;">게시글'
+		                  +'<span id="seqNum"/>'
+		                  +'<span id="parent"/>'
+		                  +'<span id="depth"/>'
+		                  +'<span id="ord"/>'
+		                  +'</th>'
 		                +'</tr>       '
 		              +'</thead>'
 		              +''

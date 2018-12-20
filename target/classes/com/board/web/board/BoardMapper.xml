@@ -43,7 +43,7 @@ FROM	(
 		<if test="keyword!='undefined' and keyword!=''">
 			AND TITLE LIKE CONCAT('%', #{keyword}, '%')
 		</if>
-		ORDER BY NUM DESC
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC ,ORD
 		) T
 	) S	
 WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
@@ -133,15 +133,25 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 ********** 답글 ********** 
 -->
 <insert id="insertReply">
+
 <![CDATA[
-	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT, DEPTH) 
-	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{parent}, #{depth}+1);
+	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT,ORD, DEPTH) 
+	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{parent},#{ord}, #{depth}+1);
 ]]>
+
+<!-- <if test=""ord!='undefined' and ord!=''">
+<![CDATA[
+	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT,ORD, DEPTH) 
+	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{parent},#{ord}, #{depth}+1);
+]]>
+</if> -->
+
 </insert>
-
-
-
-
+<select id="checkOrd" resultType="Integer">
+SELECT MAX(ORD) 
+FROM T_BOARD
+WHERE PARENT LIKE #{parent}
+</select>
 
 
 
