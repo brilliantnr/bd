@@ -23,13 +23,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<result property="cmt_content" column="CMT_CONTENT"/>
 </resultMap>
 
+<!--
+============================================================
+						원글 ARTICLE		 	
+============================================================
+-->
 <insert id="insertBoard">
 	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW) 
 	VALUES (#{title}, #{content} ,#{writer},#{pw});
-	
 </insert>
-
-
 
 <select id="listBoard"  resultMap="board">
 SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE	
@@ -40,7 +42,6 @@ FROM	(
 		SELECT  A.*
 		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
 		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
-		
 		<if test="keyword!='undefined' and keyword!=''">
 			AND (TITLE LIKE CONCAT('%', #{keyword}, '%'))
 		</if>
@@ -48,50 +49,7 @@ FROM	(
 		) T
 	) S	
 WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
-
-
-<!-- 
-	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
-	FROM (
-		SELECT  A.*
-		FROM T_BOARD A 
-		, (SELECT @ROWNUM:=0) R 
-		 WHERE CHECKDELETE IS NULL
-		<if test="keyword!='undefined' and keyword!=''">
-			AND TITLE LIKE CONCAT('%', #{keyword}, '%')
-		</if>
-		ORDER BY NUM DESC
-		) T 
-	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow} -->
-	
 </select>
-<!-- <select id="listBoard"  resultMap="board">
-	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
-	FROM (
-		SELECT  A.*
-		FROM T_BOARD A (SELECT @ROWNUM:=0) R
-		WHERE CHECKDELETE IS NULL
-		<if test="keyword!='undefined' and keyword!=''">
-		AND TITLE LIKE CONCAT('%', #{keyword}, '%')
-		</if>
-		ORDER BY NUM DESC
-		) T
-	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
-	
-</select> -->
-<!-- 
-<select id="listBoard"  resultMap="board">
-	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE 
-	FROM (
-		SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, A.*
-		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
-		<if test="keyword!='undefined' and keyword!=''">
-		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
-		</if>
-		ORDER BY NUM DESC
-		) T
-	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
-</select> -->
 
 <select id="detailBoard" resultType="com.board.web.board.Board">
 	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE 
@@ -99,8 +57,6 @@ WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 	FROM T_BOARD
 	WHERE NUM LIKE #{num}
 </select>
-
-
 
 <select id="countTotalContents" resultType="int">
 	SELECT COUNT(*) AS COUNT  
@@ -151,34 +107,78 @@ FROM	(
 	WHERE NUM =#{num};
 </update>
 
-
-<!-- 
-********** 답글 ********** 
+<!--
+============================================================
+						답글 REPLY		 	
+============================================================
 -->
 <insert id="insertReply">
-
 <![CDATA[
 	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT,ORD, DEPTH) 
 	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{parent},#{ord}, #{depth}+1);
 ]]>
-
-<!-- <if test=""ord!='undefined' and ord!=''">
-<![CDATA[
-	INSERT INTO T_BOARD (TITLE, CONTENT, WRITER, PW, PARENT,ORD, DEPTH) 
-	VALUES (#{title}, #{content} ,#{writer},#{pw}, #{parent},#{ord}, #{depth}+1);
-]]>
-</if> -->
-
 </insert>
+
 <select id="checkOrd" resultType="Integer">
 SELECT MAX(ORD) 
 FROM T_BOARD
 WHERE PARENT LIKE #{parent}
 </select>
 
+<select id="countArticleBefore" resultType="Integer">
+SELECT COUNT(*)
+FROM (
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
+		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
+		<if test="keyword!='undefined' and keyword!=''">
+			AND (TITLE LIKE CONCAT('%', #{keyword}, '%'))
+		</if>
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC, ORD IS NULL DESC, ORD DESC
+		) T
+	) S	
+WHERE PARENT IS NULL  AND  ROWNUM BETWEEN 1 AND #{beforePageEndRow}
+</select>
 
+<select id="countReplyTotal" resultType="Integer">
+SELECT 
+		COUNT(PARENT)
+FROM	(
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
+		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
+		<if test="keyword!='undefined' and keyword!=''">
+			AND (TITLE LIKE CONCAT('%', #{keyword}, '%'))
+		</if>
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC, ORD IS NULL DESC, ORD DESC
+		) T
+	) S
+<!-- SELECT 
+		COUNT(PARENT)
+FROM	(
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
+		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
+		<if test="keyword!='undefined' and keyword!=''">
+			AND (TITLE LIKE CONCAT('%', #{keyword}, '%'))
+		</if>
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC, ORD IS NULL DESC, ORD DESC
+		) T
+	) S	
+WHERE ROWNUM BETWEEN 1 AND #{beforePageEndRow} -->
+</select>
 
-<!-- 댓글 -->
+<!--
+============================================================
+						댓글	COMMENT	 	
+============================================================
+-->
 <insert id="insertComments">
 INSERT INTO COMMENTS (BR_NO, CMT_WRITER, CMT_PW, CMT_CONTENT)
 VALUES (
@@ -216,3 +216,48 @@ WHERE BR_NO LIKE #{num}
 
 
 </mapper>
+
+
+
+<!-- 
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A 
+		, (SELECT @ROWNUM:=0) R 
+		 WHERE CHECKDELETE IS NULL
+		<if test="keyword!='undefined' and keyword!=''">
+			AND TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T 
+	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow} -->
+	
+
+<!-- <select id="listBoard"  resultMap="board">
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A (SELECT @ROWNUM:=0) R
+		WHERE CHECKDELETE IS NULL
+		<if test="keyword!='undefined' and keyword!=''">
+		AND TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T
+	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
+	
+</select> -->
+<!-- 
+<select id="listBoard"  resultMap="board">
+	SELECT NUM, TITLE, CONTENT, WRITER, PW, REGIDATE 
+	FROM (
+		SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, A.*
+		FROM T_BOARD A, (SELECT @ROWNUM:=0) R
+		<if test="keyword!='undefined' and keyword!=''">
+		WHERE TITLE LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		ORDER BY NUM DESC
+		) T
+	WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
+</select> -->

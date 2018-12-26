@@ -23,38 +23,41 @@ app.service=(()=>{
 		console.log('step2 : app.service.init 진입'); 
 		app.page.listBrd();
 		list({pageNum:1});
-	};
+	}; //init() END =========================================================================================================
 	var list=x=>{
 		$('tbody').empty();
 		$('#pagination').remove();
-
+		
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
-			var i=1;
+			let $rowCount= d.rowCount;  //1.총row수
+			let $replyTotal =d.replyTotal; //2.총reply수
+			let $articleCountBf =d.articleCountBf; //3.전page원글수
+			let temp=0;//4.
 			
 			$.each(d.list,(i,j)=>{
-				let $seq_num = j.num ;
-				let $depth = j.depth;
-				let $ord = j.ord;
+				let $seq_num = j.num;
 				let $parent = j.parent;
+				let $ord = j.ord;
+				let $depth = j.depth;
+				let $checkdelete = j.checkdelete;//삭제여부
 				
-				let $rowCount=d.rowCount;
-				let $listCount = d.listCount;
-				
-				let $checkdelete = j.checkdelete;
-				
-				let listNum = $rowCount - j.rownum + 1;
-				
-				//let listNum = d.rowCount - j.rownum + 1;
+				let listNum;
 				if($parent!=null ||$checkdelete=="Y"){
-					listNum="("+listNum+")  "+$ord+"-"+$depth;
+					//답글 case
+					listNum="[답글]  ";
 				}else{
-					listNum = $rowCount - j.rownum + 1;
-					console.log("listNum++  "+listNum);
-					/*listNum = i++;
-					console.log("i++  "+listNum);*/
+					//원글 case
+					listNum = $rowCount - $replyTotal - $articleCountBf - temp;
+					temp++;
+					
+					console.log("원글 "
+							+" listNum "+listNum
+							+"="+" 총row수 "+$rowCount
+							+"-"+" 총reply수 "+$replyTotal
+							+"-"+" 전page원글수 "+$articleCountBf
+							+"-"+" temp "+temp
+					);//console
 				};
-				
-				
 				
 				/* 댓글수 표기 */
 				$.getJSON($.ctx()+'/board/countCmt/'+$seq_num,d=>{
@@ -62,11 +65,13 @@ app.service=(()=>{
 				});
 				
 				if(j.checkdelete=="Y"){
+					//삭제체크된 글
 					j.title="원글이 삭제되었습니다";
 					j.writer="";
 					j.regidate="";
 					$('#count_cmt'+$seq_num).attr({style:"visibility: hidden;"});
 				}else{
+					//정상
 					var transTime=x=>{
 						let year=new Date(x).getFullYear();
 						let month=new Date(x).getMonth()+1;
@@ -82,7 +87,6 @@ app.service=(()=>{
 					};
 					j.regidate = transTime(j.regidate);
 				};
-
 				
 				/* ============================
 				 * 리스트 구성 
@@ -91,7 +95,6 @@ app.service=(()=>{
 				 * #parent_130  에 name:$parent
 				 * #depth_130 에 name:$depth
 				 * ============================*/
-				
 				
 				$('<tr/>').append(
 						$('<td/>').attr({id:"num_"+$seq_num}).addClass("center").html(listNum),
@@ -102,11 +105,19 @@ app.service=(()=>{
 									$('<span/>').attr({id:"ord_"+$seq_num, name:$ord}),
 									$('<span/>').attr({id:"depth_"+$seq_num, name:$depth}),
 									$('<a href="#"/>').addClass("ellipsis").attr({id:"title_"+j.num}).html(j.title).click(e=>{
-										$.getJSON($.ctx()+"/board/detail/"+$('#num_'+j.num).html(),d=>{
+										$.getJSON($.ctx()+"/board/detail/"+$seq_num,d=>{
 											/* detail 페이지로 넘어가기 */
-											console.log("detail 넘어 가는 값 : "+$seq_num);
-											detail({seqNum : $seq_num, listNum : listNum
-												/*, parent:$parent, depth:$depth*/
+											console.log("----detail 넘어가는 값 : 1.$seq_num:  "+$seq_num);
+											console.log("----detail 넘어가는 값 : 2.listNum :  "+listNum);
+											console.log("----detail  : 3.$parent :  "+$parent);
+											console.log("----detail  : 4.$ord	 :  "+$ord);
+											console.log("----detail  : 5.$depth  :  "+$depth);
+											
+											detail({seqNum : $seq_num
+													, listNum : listNum
+													/*, parent:$parent
+													, ord:$ord
+													, depth:$depth*/
 												});
 										});
 									})
@@ -124,16 +135,9 @@ app.service=(()=>{
 					$('#count_cmt'+$seq_num).attr({style:"visibility: hidden;"});
 				}
 				
-				
-				console.log($seq_num+" :: $depth-------"+$depth);
-				console.log($seq_num+" :: $ord-------"+$ord);
-				/*if(!$depth=='undefined'){
-					$('[name="reply_img"]').attr({src:$.ctx()+"/resources/icon_reply.png"});
-				};*/
 				if(!$parent=='undefined'){
 					$('[name="reply_img"]').attr({src:$.ctx()+"/resources/icon_reply.png"});
 				};
-				
 				
 				/* 원글 삭제시 a태그 비활성화 */
 				if(j.checkdelete=="Y"){
@@ -201,13 +205,8 @@ app.service=(()=>{
 								list({pageNum: d.lastPage, keyword:d.keyword}); 
 							}).appendTo('#pg_ul');
 			
-			
-			
-			
-			
-			
 		});
-	};
+	};//list() END =========================================================================================================
 	var add=()=>{
 		$('#wrapper').html(app.page.inputBrd());
 		app.page.fileUpload();
@@ -258,7 +257,7 @@ app.service=(()=>{
 				
 			};
 		});
-	};
+	};//ADD() END =========================================================================================================
 	var update=x=>{
 		console.log("=====update 페이지 진입 ===== ");
 		$('#wrapper').html(app.page.inputBrd());
@@ -308,7 +307,7 @@ app.service=(()=>{
 		           });
 			}
 		});
-	};
+	}; //update() END =========================================================================================================
 	
 	var detail=x=>{
 		/* ============================
@@ -342,11 +341,7 @@ app.service=(()=>{
 			$('#td_content4').html(d.detail.content);
 			
 		});
-		
-		
-		
 		//기본정보 고정시키기 END
-		
 		
 		
 		/* 댓글 입력창 START */
@@ -378,15 +373,6 @@ app.service=(()=>{
 				$cmt_writer.replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
 				$cmt_content.replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;");
 				
-				/*
-				console.log("j.cmt_no : "+j.cmt_no);
-				console.log("j.cmt_writer : "+j.cmt_writer);
-				console.log("j.cmt_pw : "+j.cmt_pw);
-				console.log("j.cmt_content : "+j.cmt_content);
-				console.log("$ord : "+j.ord);
-				console.log("$depth : "+j.depth);
-				*/
-				
 				/*댓글 화면 */
 					let $cmt_li=$('<li/>').attr({id:$cmt_no}).append(
 							$('<div/>').attr({style:"padding-top: 10px;"}).append(
@@ -395,14 +381,14 @@ app.service=(()=>{
 										$('<span/>').attr({style:"margin: 0 0 0px 10px;"}).text(j.cmt_writer),
 										$('<p/>').attr({style:"float: right;margin: 0;padding-top: 3px;"}).append(
 												$('<a href="#"/>').html("수정").click(e=>{
-													/* 댓글 수정 버튼 클릭*/
+			/* ==detail에서 댓글 수정 버튼 클릭  ==================================== 댓글 수정 버튼 클릭 ==================================== */
 													var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
 													$.ajax({
 														 url : $.ctx()+'/board/validcmt/'+pwInput,
 														 method : 'post',
 											             contentType : 'application/json',
 											             data : JSON.stringify({
-											            	 pwInput :pwInput,
+											            	 pwInput :pwInput, 
 											            	 num : $seqNum,
 											            	 cmt_no:$cmt_no
 											             }),
@@ -410,14 +396,8 @@ app.service=(()=>{
 											            	 if(d.auth===false){
 																	alert('비밀번호 확인해주세요');
 																}else{
-																	alert('비밀번호 일치,댓글수정');
-																	console.log("$cmt_no : "+$cmt_no);
-																	
-																	//-------댓글 수정 화면 START ----------
-																	/* 입력 즉시 공백체크 */
-																	app.valid.cmtValid(); 
-																	$('#count_geul').html("0");
-																	app.fn.countCmt(); 
+ /* ==detail에서 댓글 수정 화면 START  =============================================== detail에서 댓글 수정 화면 START  ==================================== */
+																	console.log("댓글 수정 $cmt_no : "+$cmt_no);
 																	
 																	let cmtBox = $('<table/>').addClass("cminput").append(
 																			$('<tbody/>').append(
@@ -425,13 +405,28 @@ app.service=(()=>{
 																					$('<td colspan="4"/>').append(
 																							$('<div/>').append(
 																									"작성자 : ",
-																									$('<input>').attr({id:"input_writer"}).val($cmt_writer)
+																									$('<input>').attr({id:"update_writer", maxlength:"20"}).val($cmt_writer)
+																									.keyup(function(event){
+																							            if($(this).val().length>=20){
+																							            	console.log("작성자는 20자 이내로 가능합니.update_writer.keyup : ");
+																							    			alert("작성자는 20자 이내로 가능합니다. (수정)");
+																							    			$(this).focus();
+																							    		};
+																									})
 																									)
 																							),
 																					$('<td colspan="4"/>').append(
 																							$('<div/>').append(
 																									"비밀번호 : ",
-																									$('<input>').attr({id:"input_pw"})
+																									$('<input>').attr({id:"update_pw",type:"password" , maxlength:"20"})
+																									.keyup(function(event){
+																										console.log("!!!! cmtUpdateValid.update_pw.keyup : ");
+																										if($(this).val().length>=20){
+																											alert("비밀번호는 20자 이내로 가능합니다. (수정)");
+																											$(this).focus();
+																										};
+																									})
+																									
 																									)
 																							)
 																						)
@@ -439,31 +434,50 @@ app.service=(()=>{
 																				$('<tr/>').append(	
 																					$('<td colspan="7"/>').addClass("i2").append(
 																						$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(  //style="white-space: pre-wrap; height:350px"
-																							$('<textarea/>').text($cmt_content).attr({id:"input_content", style:"white-space: pre-wrap; overflow: hidden; line-height: 20px; height: 80px;"}).addClass("textarea m-tcol-c"),
+																							$('<textarea/>').text($cmt_content).attr({id:"update_content", style:"white-space: pre-wrap; overflow: hidden; line-height: 20px; height: 80px;"}).addClass("autosize textarea m-tcol-c")
+																							.keyup(
+																									function(event){
+																										let $content = $('#update_content').val();
+																										$('#update_count_geul').html($content.length);
+																										console.log("$content.length : "+$content.length);
+																										if($content.length>300){
+																											alert("최대 300자 입력 가능합니다.");
+																										}
+																									}
+																									/*,function(element){
+																										 $('#update_content').style.height = "5px";
+																										 $('#update_content').style.height = ($('#update_content').scrollHeight)+"px";
+																											}*/
+																									/*,app.fn.autoGrow()*/
+																									)
+																							,
 																							$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
 																									$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
-																									$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
+																									$('<strong/>').attr({id:"update_count_geul", style:"font-weight: 400;"}).html("0"),
 																									"/",
 																									$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("전체 입력 가능한 글자수"),
 																									$('<span/>').attr({style:"font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).html("300자")
 																									)
-																							
-																							
-																							
 																							)
 																					),
 																					$('<td/>').addClass("i3").append(
 																							$('<div/>').addClass("cmt_btn u_cbox_btn_upload _submitBtn").attr({style:"text-align: center;"}).append(
 																									$('<a/>').attr({href:"#",style:" font-size: 13px; font-weight: bold; line-height: 130px; text-align: center;display: block;width: 100%; height: 100%;"}).addClass("u_cbox_txt_upload _submitCmt").html("수정")
 																									.click(e=>{
+																										//댓글 수정 테이블에서 수정완료버튼 클릭
 																										let $seqNum = $('#seqNum').attr('name');
-																										let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
-																										let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
-																										let $pw = $('#input_pw').val();
+																										let $content= $('#update_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
+																										let $writer = $('#update_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
+																										let $pw = $('#update_pw').val();
 																										
-																										console.log("----댓글입력시 $seqNum : "+$seqNum);
 																										/* 유효성 검사 */
-																										let v = app.valid.cmtValid();
+																										let v = app.valid.cmtUpdateValid({
+																											/*$seqNum:$seqNum,
+																											$content:$content,
+																											$writer:$writer,
+																											$pw:$pw*/
+																											});
+																										console.log("let v = app.valid.cmtUpdateValid();");
 																										if(v){
 																											 $.ajax({
 																									             url : $.ctx()+'/board/updateComment',
@@ -479,7 +493,6 @@ app.service=(()=>{
 																									             success : d=>{
 																									            	alert('댓글 수정 완료 ');
 																									            	
-																									            	
 																									            	$('#wrapper').empty();
 																									         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
 																									         		$('#wrapper').html(app.page.detailBrd());
@@ -494,28 +507,31 @@ app.service=(()=>{
 																				)
 																			)
 																	);
-																	//-------댓글 수정 화면 END ----------
+
+																	/*app.valid.cmtValid(); 
+																	$('#update_count_geul').html("0");*/
+																	//app.fn.countCmt(); 
+
+																	/*$('#update_content').keyup(e=>{
+																		let $content = $('#update_content').val();
+																		console.log("2222222222$content : "+$content);
+																		$('#update_count_geul').html($content.length);
+																		console.log("$('#update_count_geul').html($content.length); "+$content.length);
+																		if($content.length>300){
+																			alert("최대 300자 입력 가능합니다.");
+																		}
+																	});*/
+																	
 																	$('#'+$cmt_no).empty();
 																	$('#'+$cmt_no).append(cmtBox);
-																	
-																	
-
-																	
+																
 /*																		$('#wrapper').empty();
- * 
 																		$('#wrapper').append($('<div/>').attr({id : 'contents'}));*/
 																	
+/* ==detail에서 댓글 수정 화면   END  ===================== END ========================== detail에서 댓글 수정 화면   END  ==================================== */
 																};
-											            	 
 											             }
-											             
-											             
 													});
-													
-													
-													
-													
-													
 													
 													$.ajax({
 														url: $.ctx()+'/board/updateCmt',
@@ -526,15 +542,11 @@ app.service=(()=>{
 															/*cmt_writer:
 															cmt_pw:,
 															cmt_content:*/
-															
-														})
-													});//-------0000-------
-													
-													
+															})
+													});
 												}),
 												$('<a href="#"/>').html("삭제").attr({style:"margin-left: 10px;"}).click(e=>{
 													/* 삭제 버튼 클릭 */
-
 													var pwInput = prompt("비밀번호를 입력하세요 ","비밀번호");
 													$.ajax({
 														 url : $.ctx()+'/board/validcmt/'+pwInput,
@@ -613,23 +625,17 @@ app.service=(()=>{
 		
 		
 		
-		// detail 화면에서  버튼 클릭시 =========================================================
+		// detail -> 해당 글 수정
 		$('#update_btn').click(e=>{
 			console.log("update_btn 클릭");
 			validation({seqNum:$seqNum, move:"updateBrd"});
 		});
+		// detail -> 해당 글 삭제
 		$('#delete_btn').click(e=>{
 			console.log("delete_btn 클릭");
 			validation({seqNum:$seqNum, move:"deleteBrd"});
 		});
-		
-		
-		/*let depth=$('#depth').attr('name');
-		if(depth=='2' ||depth=='3'  ){
-			//   ?????
-			$('#reply_btn').attr({style:"visibility: hidden;"});
-		};*/
-		
+		// detail -> 해당 글에 대한 답글 입력
 		$('#reply_btn').click(e=>{
 			let $depth = $('#depth').attr('name');
 			let $ord = $('#ord').attr('name');
@@ -639,6 +645,9 @@ app.service=(()=>{
 			
 			$.getJSON($.ctx()+'/board/chkOrd/'+$seqNum,d=>{
 				let $lastOrd = d.lastOrd;
+				if($lastOrd==null){
+					$lastOrd=0;
+				};
 				push_ord=parseInt($lastOrd)+1;
 
 				console.log("d.lastOrd : "+$lastOrd);
@@ -679,7 +688,7 @@ app.service=(()=>{
 			
 		});
 		
-	};
+	};//detail() END =========================================================================================================
 	var reply=x=>{
 		/*@param ; 
 		 * parent
@@ -749,7 +758,7 @@ app.service=(()=>{
 		
 		
 		
-	};
+	};////reply() END =========================================================================================================
 	
 	var validation=x=>{
 		/* @param seqNum
@@ -814,7 +823,7 @@ app.service=(()=>{
 					}
 				}
            });
-	};
+	}; //validation() END =========================================================================================================
 	
 	return{init:init,
 			list:list,
@@ -827,10 +836,8 @@ app.service=(()=>{
 
 app.valid=(()=>{
 	var checkPassword=x=>{
-		
-		
+		console.log("----app.valid.checkPassword 진입----");
 		//비밀번호
-		console.log("--checkPassword----");
 		let pattern1 = /[0-9]/;	// 숫자 
 		let pattern2 = /[a-zA-Z]/;	// 문자 
 		let pattern3 = /[~!@#$%^&*()_+|<>?:{}]/;	// 특수문자
@@ -842,10 +849,12 @@ app.valid=(()=>{
 		}else{
 			return true;
 		};
-	};
+	};//checkPassword() END =========================================================================================================
 	var cmtValid=()=>{
+		console.log("----app.valid.cmtValid 진입----");
 		let vd = false;
-		blankValid();//공백체크
+		//blankValid();//공백체크
+		
 		let $writer=$.trim($('#input_writer').val());
 		let $pw=$.trim($('#input_pw').val());
 		let $content=$.trim($('#input_content').val());
@@ -856,27 +865,98 @@ app.valid=(()=>{
 			  return b;
 			};
 		let $contentByte = getByteLength($content);
-		
+	
 		if($writer===''||$writer===null){
+			console.log("111111111");
 			alert("작성자를 입력하세요");
 			$('#input_writer').focus();
 			vd= false;
-		}else 
-		if($pw===''||$pw==null){
+		}else if($pw===''||$pw==null){
 			alert("비밀번호를 입력하세요");
 			$('#input_pw').focus();
 			vd= false;
-		}else 
-		if($content===''||$content==null){
+		}else if($content===''||$content==null){
 			alert("내용을 입력하세요");
 			$('#input_content').focus();
 			vd= false;
+		}else if($content.length>300){
+			alert("내용을 글자수에 맞춰 입력하세요");
+			$('#input_content').focus();
+			vd= false;	
+		}else {
+			vd = checkPassword($pw);
+		};
+		return vd;
+	};
+	//cmValid() END =========================================================================================================
+	var cmtUpdateValid=()=>{
+		
+
+		//=========== 댓글 수정 유효성 검사 START =========================
+		console.log("----app.valid.cmtUpdateValid 진입----");
+		let vd = false;
+		//blankValid();//공백체크
+		let $writer=$.trim($('#update_writer').val());
+		let $pw=$.trim($('#update_pw').val());
+		let $content=$.trim($('#update_content').val());
+		
+		console.log("!!!! cmtUpdateValid.$writer : "+$writer);
+		console.log("!!!! cmtUpdateValid.$pw : "+$pw);
+		console.log("!!!! cmtUpdateValid.$content : "+$content);
+		
+		//글자수 
+		/*var getByteLength = function(s,b,i,c){
+			  for(b=i=0; c=s.charCodeAt(i++); b+=c>>11?3:c>>7?2:1);
+			  return b;
+			};
+		let $contentByte = getByteLength($content);
+		console.log("!!!! cmtUpdateValid.$contentByte : "+$contentByte);*/
+	/*
+	 *페이지 생성시 바로 keyup으로 옮김
+	 *
+		$('#update_writer').keyup(function(event){
+			console.log("!!!! cmtUpdateValid.update_writer.keyup : ");
+            if($writer.length>=20){
+            	console.log("!!!! cmtUpdateValid.update_writer.keyup : ");
+    			alert("작성자는 20자 이내로 가능합니다. (수정)");
+    			$(this).focus();
+    		};
+		});
+		
+		$('#update_pw').keyup(function(event){
+			console.log("!!!! cmtUpdateValid.update_pw.keyup : ");
+			if($(this).val().length>=20){
+				alert("비밀번호는 20자 이내로 가능합니다. (수정)");
+				$(this).focus();
+			};
+		});
+		*/
+		
+		if($writer===''||$writer===null){
+			console.log("111111111");
+			alert("작성자를 입력하세요");
+			$('#update_writer').focus();
+			vd= false;
+		}else if($pw===''||$pw==null){
+			alert("비밀번호를 입력하세요");
+			$('#update_pw').focus();
+			vd= false;
+		}else if($content===''||$content==null){
+			alert("내용을 입력하세요");
+			$('#update_content').focus();
+			vd= false;
+		}else if($content.length>300){
+			alert("내용을 글자수에 맞춰 입력하세요");
+			$('#update_content').focus();
+			vd= false;
+			//내용 과다 777777777777777777777777777777777777
 		}else {
 			vd = checkPassword($pw);
 		};
 		return vd;
 	};
 	var isValid=()=>{
+		console.log("----app.valid.isValid 진입----");
 		let vd = false;
 		
 		blankValid();//공백체크
@@ -913,12 +993,13 @@ app.valid=(()=>{
 		});*/
 		
 		//$.trim() : 앞뒤의 빈칸 제거
-		if($title===''||$title===null){
+		// null 체크 = 
+		if($title===''||$title==null){
 			alert("제목을 입력하세요");
 			$('#input_title').focus();
 			vd= false;
 		}else  
-		if($writer===''||$writer===null){
+		if($writer===''||$writer==null){
 			alert("작성자를 입력하세요");
 			$('#input_writer').focus();
 			vd= false;
@@ -941,9 +1022,10 @@ app.valid=(()=>{
 			vd=true;
 		};*/
 		return vd;
-	};
+	}; //isValid() END =========================================================================================================
 	var blankValid=()=>{
-
+		console.log("----app.valid.blankValid 진입----");
+		console.log("55555555555555");
 		$('#input_title').keyup(function(event){
 			if($(this).val().length>=99){
 				alert("제목은 100자 이내로 가능합니다.");
@@ -953,6 +1035,7 @@ app.valid=(()=>{
 		
 		//작성자 : 20글자 이하 영문대소문자, 한글
 		$('#input_writer').keyup(function(event){
+			$(this).val().substr(0,60);
 			/*if (!(event.keyCode >=37 && event.keyCode<=40)) {
                 var inputVal = $(this).val();
                 $(this).val($(this).val().replace(/[^a-zA-Z가-힣]/gi,'')); //_(underscore), 영어, 숫자만 가능
@@ -977,13 +1060,22 @@ app.valid=(()=>{
                 $(this).val($(this).val().replace(/[^\w~@\#$%<>^&*\()\-=+_\']/gi,'')); //영문대소문자, 숫자, 특수기호 ~!@#$%^&*()_+-=
             }
 		});*/
+
+		/*//작성자 : 20글자 이하 영문대소문자, 한글
+		$('#input_writer').keyup(function(event){
+            if($(this).val().length> $(this).attr('maxlength')){
+    			alert("dd 작성자는 "+$(this).atrr('maxlength')+"자 이내로 가능합니다.");
+    			$(this).val($(this).val().substr(0, $(this).atrr('maxlength')));
+    			$(this).focus();
+    		};
+		});*/
 		
-		
-	};
+	}; //blankValid() END =========================================================================================================
 	return {
 		isValid:isValid,
 		blankValid:blankValid,
-		cmtValid:cmtValid
+		cmtValid:cmtValid,
+		cmtUpdateValid:cmtUpdateValid
 	};
 })();
 
@@ -998,6 +1090,11 @@ $(document).on("click","#list_btn",function(){
 
 
 app.fn=(()=>{
+	var autoGrow=(element)=>{
+		 element.style.height = "5px";
+		 element.style.height = (element.scrollHeight)+"px";
+	};
+	/**/
 	var countText=()=>{
 		$('#input_content').keyup(e=>{
 			console.log("keyup--------22-------");
@@ -1017,7 +1114,9 @@ app.fn=(()=>{
 			}
 		});
 	};
-	return {countText:countText,countCmt:countCmt};
+	return {countText:countText
+		,countCmt:countCmt
+		,autoGrow:autoGrow};
 })();
 
 
@@ -1032,13 +1131,13 @@ app.page=(()=>{
 						$('<td/>').append(
 								$('<div/>').append(
 										"작성자 : ",
-										$('<input>').attr({id:"input_writer"})
+										$('<input>').attr({id:"input_writer", maxlength:"20"})
 										)
 								),
 						$('<td/>').append(
 								$('<div/>').append(
 										"비밀번호 : ",
-										$('<input>').attr({id:"input_pw", type:"password"})
+										$('<input>').attr({id:"input_pw", type:"password",maxlength:"20"})
 										)
 								)
 							)
@@ -1046,7 +1145,7 @@ app.page=(()=>{
 					$('<tr/>').append(	
 						$('<td colspan="2"/>').addClass("i2").append(
 							$('<div/>').addClass("comm_write_wrap border-sub skin-bgcolor").append(
-								$('<textarea/>').attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 14px; height: 80px;"}).addClass("textarea m-tcol-c"),
+								$('<textarea/>').attr({id:"input_content", style:"border-color: white;overflow: hidden; line-height: 14px; height: 80px;"}).addClass("autosize textarea m-tcol-c"),
 								$('<div/>').attr({style:"margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).append(
 										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("현재 입력한 글자수"),
 										$('<strong/>').attr({id:"count_geul", style:"font-weight: 400;"}),
@@ -1054,21 +1153,19 @@ app.page=(()=>{
 										$('<span/>').attr({style:"position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;"}).html("전체 입력 가능한 글자수"),
 										$('<span/>').attr({style:"font-size: 13px; color: #999; line-height: 22px; text-align: right;"}).html("300자")
 										)
-								
-								
-								
 								)
 						),
 						$('<td/>').addClass("i3").append(
 								$('<div/>').addClass("cmt_btn u_cbox_btn_upload _submitBtn").attr({style:"text-align: center;"}).append(
 										$('<a/>').attr({href:"#",style:" font-size: 13px; font-weight: bold; line-height: 130px; text-align: center;display: block;width: 100%; height: 100%;"}).addClass("u_cbox_txt_upload _submitCmt").html("등록")
 										.click(e=>{
+											/* ==== 새 댓글 입력 클릭 이벤트  ==== */
 											let $seqNum = $('#seqNum').attr('name');
 											let $content= $('#input_content').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;"); //태그입력방지
 											let $writer = $('#input_writer').val().replace(/&/gi,"&amp;").replace(/</gi,"&lt;").replace(/>/gi,"&gt;").trim();
 											let $pw = $('#input_pw').val();
 											
-											console.log("----댓글입력시 $seqNum : "+$seqNum);
+											console.log("----새 댓글 입력시 $seqNum : "+$seqNum);
 											/* 유효성 검사 */
 											let v = app.valid.cmtValid();
 											if(v){
@@ -1083,18 +1180,17 @@ app.page=(()=>{
 										            	 cmt_pw : $pw,
 										             }),
 										             success : d=>{
-										            	alert('댓글입력완료 ');
+										            	alert('새 댓글 입력완료 ');
 										            	$('#wrapper').empty();
 										         		$('#wrapper').append($('<div/>').attr({id : 'contents'}));
 										         		$('#wrapper').html(app.page.detailBrd());
 										         		app.service.detail({seqNum:$seqNum });
 										             }
-										           });
+									           });
 											}
 										}
-												)
-										)
-								
+									)
+								)
 						)
 					)
 				)
@@ -1221,7 +1317,7 @@ app.page=(()=>{
 		                  +'<td style="width: 160px; text-align: center;">내용</td>'
 		                  +'<td colspan="2" >'
 	                  	  	+'<div>'
-			                  +'<textarea class="form-control" id="input_content" style="white-space: pre-wrap; height:350px">'
+			                  +'<textarea class="form-control autosize" id="input_content" style="white-space: pre-wrap; height:350px">'
 			                  +'</textarea>'
 			                  +'<div style="margin: 10px 16px 10px; font-size: 13px; color: #999; line-height: 22px; text-align: right;">'
 			                  +'<span style="position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px;margin: -1px; overflow: hidden;">현재 입력한 글자수</span>'
@@ -1233,9 +1329,14 @@ app.page=(()=>{
 			                  +'</div>'
 		                  +'</td>'
 		                +'</tr> '
+		               /* +'<tr>  '
+		                  +'<td style="width: 160px; text-align: center;">파</td>'
+		                
+		                  +'</td>'
+		                +'</tr> '*/
 		              +'</tbody>'
-		              
 		            +'</table>'
+		            
 		            +'<div id="btn_div" style="text-align: right; margin-top: 50px;">'
 		              	+'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'
 		                +'<button id="complete_btn" class="btn btn-primary pull-right">글쓰기 완료</button>'
@@ -1336,7 +1437,7 @@ app.page=(()=>{
 	};
 	var fileUpload =()=>{
 		/*이미지 업로드*/
-		/*var profile;
+		var profile;
 		$('<label/>').addClass('bold').html("프로필 사진 업로드").attr({style:"padding-top:20px;padding-bottom:5px"}).appendTo($('#add_form_middle'));
 		$('<div/>').addClass('imgup_con').append(
 				$('<form/>').attr({enctype:'multipart/form-data',id:'imgup_form'}).append(
@@ -1358,10 +1459,15 @@ app.page=(()=>{
 						)
 						
 				)
-		).appendTo($('table'));*/
+		).appendTo($('table'));
 		
 	};
-	return{cmtTable:cmtTable, fisrt:fisrt, listBrd:listBrd, inputBrd:inputBrd, detailBrd:detailBrd, fileUpload:fileUpload };
+	return{cmtTable:cmtTable
+		, fisrt:fisrt
+		, listBrd:listBrd
+		, inputBrd:inputBrd
+		, detailBrd:detailBrd
+		, fileUpload:fileUpload };
 })();
 
 

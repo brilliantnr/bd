@@ -18,6 +18,8 @@ public interface BoardMapper {
 	/* reply */
 	public void insertReply(Map<?, ?> p);
 	public Integer checkOrd(Map<?, ?> p);
+	public Integer countArticleBefore(Map<?, ?> p);
+	public Integer countReplyTotal(Map<?, ?> p);
 	
 	/* 댓글 */
 	public void insertComments(Map<?, ?> p);

@@ -91,3 +91,4 @@
     border-color: #ccc;
 }
 
+textarea.autosize { min-height: 50px; }

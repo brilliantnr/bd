@@ -45,7 +45,6 @@ public class BoardController {
 		//logger.info("detail 결과 : "+map.get("detail"));
 		return map;
 	};
-
 	
 	@GetMapping("/list/{pageNo}/{keyword}")
 	public Map<String,Object> listBoard(@PathVariable String pageNo, @PathVariable Object keyword) {
@@ -53,9 +52,12 @@ public class BoardController {
 		Map<String,Object> map = new HashMap<>();
 		map.put("pageNo", pageNo);
 		map.put("keyword", keyword);
+		
 		pagination.excute(map);//페이지네이션
+		
 		map.put("list", mapper.listBoard(map));
-		map.put("listCount", mapper.countlist(map));
+		map.put("replyTotal", mapper.countReplyTotal(map)); //2.총reply수
+		map.put("articleCountBf", mapper.countArticleBefore(map));//3.전page원글수
 		//System.out.println("map.get keyword :  "+map.get("keyword"));
 		//System.out.println("------d.list 결과 : \n"+map.get("list"));
 		return map;

@@ -42,6 +42,11 @@ public Map<?, ?> excute(Map<?, ?> p) {
 	
 	boolean existPrev = (beginPage!=1);
 	boolean existNext = (endPage<pageCount);
+	
+	/* 답글표시되는 rowNum 만들기*/
+	int beforePageEndRow = (pageNum - 1)* rowSize ;
+	pg.put("beforePageEndRow", beforePageEndRow);
+	System.out.println("beforePageEndRow : "+beforePageEndRow);
 	/*
 	System.out.println("총 게시글 수 - rowCount : "+rowCount);
 	System.out.println("총 페이지 수  - pageCount : "+pageCount);
@@ -55,7 +60,7 @@ public Map<?, ?> excute(Map<?, ?> p) {
 	System.out.println("existNext : "+existNext);
 	*/
 	
-	//pg.put("rowSize", rowSize);
+	pg.put("rowSize", rowSize);
 	pg.put("rowCount", rowCount);
 	pg.put("beginPage", beginPage);
 	pg.put("endPage", endPage);
