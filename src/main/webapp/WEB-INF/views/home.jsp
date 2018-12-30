@@ -19,8 +19,7 @@
 	<div id="pt_header" style="height: 118px; background: #32373b; width: 100%;"></div>
 
 	<!-- contents -->
-	<div id="wrapper" style="margin-top: 80px; margin-bottom: 50px;"></div>
-	
+	<div id="wrapper" style="margin-top: 50px; margin-bottom: 50px;"></div>
 	
 	
 	<script>

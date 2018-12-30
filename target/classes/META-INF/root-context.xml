@@ -51,4 +51,12 @@
 	
 	<mybatis-spring:scan base-package="com.board.web"/>
 	
+	<!-- 파일 업로드 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" >
+		<property name="maxUploadSize" value="10485760"/> <!-- 10mb 제한 -->
+	</bean>
+	<bean id="uploadPath" class="java.lang.String">
+	 	<constructor-arg value="C:\Users\C\workspace\sts-3.9.6-workspace\Board-file"></constructor-arg>
+	</bean>
+	
 </beans>

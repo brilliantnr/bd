@@ -28,6 +28,17 @@ app.service=(()=>{
 		$('tbody').empty();
 		$('#pagination').remove();
 		
+		/* 엑셀 다운로드 */
+		$('<div/>').append(
+				$('<button/>').attr({id:"excel_btn"}).html("엑셀 다운로드").addClass("btn btn-default pull-right")
+				.click(e=>{
+					$.getJSON($.ctx()+'/excel/down/'+x.keyword,d=>{
+						console.log("d.dataList.title : "+d.dataList.title);
+					});
+				})
+		).appendTo($('#container'));
+		
+		
 		$.getJSON($.ctx()+'/board/list/'+x.pageNum+'/'+x.keyword,d=>{
 			let $rowCount= d.rowCount;  //1.총row수
 			let $replyTotal =d.replyTotal; //2.총reply수
@@ -146,7 +157,7 @@ app.service=(()=>{
 			});
 
 			/* 페이지네이션  구성 시작 */
-			$('<div/>').attr({id:"pagination", style:"text-align: center;"}).addClass("clearfix").appendTo("#list_row");
+			$('<div/>').attr({id:"pagination", style:"text-align: center;"}).addClass("clearfix").appendTo("#btn_col");
 			$('<ul/>').addClass("pagination").attr({id:'pg_ul', style:"margin-left: auto;margin-right: auto;"}).appendTo("#pagination");
 			
 			let prev = (d.existPrev)? '': 'disabled';
@@ -622,8 +633,6 @@ app.service=(()=>{
 		$('#count_geul').html("0");
 		app.fn.countCmt(); 
 		/* 댓글 입력창 END */
-		
-		
 		
 		// detail -> 해당 글 수정
 		$('#update_btn').click(e=>{
@@ -1209,10 +1218,11 @@ app.page=(()=>{
 		let list_compo = $('<div/>').attr({id:"container"}).addClass("container").appendTo('#contents');
 		$('<div/>').attr({id:"list_row"}).addClass("row").appendTo("#container");
 		
+		
 		/* 리스트   */
 		$('<div/>').attr({id:"list_col"}).addClass("col-md-12").appendTo($('#list_row'));
 			$('<div/>').attr({id:"list_tbl"}).addClass("table-responsive").appendTo($('#list_col'));
-				$('<table/>').attr({id:"board_table"}).addClass("table table-list table-bordred table-striped").appendTo('#list_tbl');
+				$('<table/>').attr({id:"board_table", style:"margin-top:30px;"}).addClass("table table-list table-bordred table-striped").appendTo('#list_tbl');
 					$('<thead/>').attr({id:"board_thead"}).appendTo('#board_table');
 						$('<th/>').addClass("th-num").append($('<span/>').html("NO")).appendTo('#board_thead');
 						$('<th/>').addClass("th-title").append($('<span/>').html("제목")).appendTo('#board_thead');
@@ -1221,17 +1231,25 @@ app.page=(()=>{
 					$('<tbody>').attr({id:"tbody_list"}).appendTo('#board_table');
 		
 		/* ================검색 및버튼  ================*/
-		$('<div/>').attr({id:"btn_col"}).addClass("col-md-12").appendTo($('#list_row'));
+		$('<div/>').attr({id:"btn_col"}).addClass("col-md-12").appendTo($('#list_col'));
 		
 		
 		/*			+'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'*/
-		$('<button/>').attr({id:"list_btn"}).html("목록보기").addClass("btn btn-default pull-left").appendTo($('#list_row'));
+		$('<div>').append(
+				$('<button/>').attr({id:"list_btn"}).html("목록보기").addClass("btn btn-default pull-left")
+				,$('<button/>').attr({id:"write_btn"}).html("글쓰기").addClass("btn btn-default pull-right")
+				.click(e=>{
+					console.log('글쓰기 버튼 클릭');
+					app.service.add();
+				})
+			).appendTo('#list_col');
+		/*$('<button/>').attr({id:"list_btn"}).html("목록보기").addClass("btn btn-default pull-left").appendTo($('#list_row'));
 		//글쓰기
 		$('<button/>').attr({id:"write_btn"}).html("글쓰기").addClass("btn btn-default pull-right").appendTo('#list_row')
 		.click(e=>{
 			console.log('글쓰기 버튼 클릭');
 			app.service.add();
-		});
+		});*/
 		
 		//검색set
 		$('<div/>').addClass("col-xs-8 col-xs-offset-2").append(
@@ -1329,14 +1347,62 @@ app.page=(()=>{
 			                  +'</div>'
 		                  +'</td>'
 		                +'</tr> '
-		               /* +'<tr>  '
-		                  +'<td style="width: 160px; text-align: center;">파</td>'
-		                
-		                  +'</td>'
-		                +'</tr> '*/
 		              +'</tbody>'
 		            +'</table>'
+		            /* 파일 업로드 */
+		            +'<div id="file_div" style="margin-top: 10px;">'
+		              
+	                 
+		              
+		            +'</div>'
+		            +''
 		            
+		            /*var profile;
+		    		$('<label/>').addClass('bold').html("프로필 사진 업로드").attr({style:"padding-top:20px;padding-bottom:5px"}).appendTo($('#add_form_middle'));
+		    		$('<div/>').addClass('imgup_con').append(
+		    				$('<form/>').attr({enctype:'multipart/form-data',id:'imgup_form'}).append(
+		    						$('<div/>').addClass('imgup_prev').append(
+		    								$('<div/>').attr({id:'targetLayer',style:'opacity: 0.7;'}),
+		    								//$('<img/>').addClass('icon_choose_image').attr({src:$.img()+'/hyeri/upimageicon.png',style:'opacity:0.5'}),
+		    								$('<div/>').addClass('imgup').append(
+		    										$('<input/>').attr({type:"file",name:'find_img',id:'find_img'}).addClass('inputFile')
+		    										.change(function(a) {
+		    											let ck = (this.files[0].name.match(/jpg|gif|png|jpeg/i)) ? true : false;
+		    											if(ck){
+		    												profile=this.files[0].name;
+		    												hyeri.func.iu(this);
+		    											}else{
+		    												alert("gif,png,jpg,jpeg 파일만 업로드 할 수 있습니다.");
+		    											}
+		    										})	
+		    								)
+		    						)
+		    						
+		    				)
+		    		).appendTo($('#file_div'));*/
+		            
+		            
+		            
+		            
+		            
+		        	/*
+		    		
+		    		<div class="imgup_con">
+		    			<form enctype="multipart/form-data" id="imgup_form">
+		    				<div class="imgup_prev">
+		    					<div id="targetLayer" style="opacity: 0.7;"></div>
+		    					<div class="imgup">
+		    						<input type="file" name="find_img" id="find_img" class="inputFile">
+		    					</div>
+		    				</div>
+		    			</form>
+		    		</div>
+		    		*/
+		            
+		            
+		    		
+		            
+		            /* 버튼 div */
 		            +'<div id="btn_div" style="text-align: right; margin-top: 50px;">'
 		              	+'<button id="list_btn" class="btn btn-primary pull-left">목록가기</button>'
 		                +'<button id="complete_btn" class="btn btn-primary pull-right">글쓰기 완료</button>'
@@ -1436,17 +1502,17 @@ app.page=(()=>{
 		return detailPage;
 	};
 	var fileUpload =()=>{
-		/*이미지 업로드*/
 		var profile;
-		$('<label/>').addClass('bold').html("프로필 사진 업로드").attr({style:"padding-top:20px;padding-bottom:5px"}).appendTo($('#add_form_middle'));
-		$('<div/>').addClass('imgup_con').append(
-				$('<form/>').attr({enctype:'multipart/form-data',id:'imgup_form'}).append(
-						$('<div/>').addClass('imgup_prev').append(
+		//$('<label/>').addClass('bold').html("프로필 사진 업로드").attr({style:"padding-top:20px;padding-bottom:5px"}).appendTo($('#file_div'));
+		$('<div/>').append(
+				$('<form/>').attr({enctype:'multipart/form-data',id:'file_form'}).append(
+						$('<div/>').append(
 								$('<div/>').attr({id:'targetLayer',style:'opacity: 0.7;'}),
 								//$('<img/>').addClass('icon_choose_image').attr({src:$.img()+'/hyeri/upimageicon.png',style:'opacity:0.5'}),
-								$('<div/>').addClass('imgup').append(
-										$('<input/>').attr({type:"file",name:'find_img',id:'find_img'}).addClass('inputFile')
-										.change(function(a) {
+								$('<div/>').append(
+										$('<input/>').attr({type:"file",id:'find_file'})
+										.change(
+												/*function(a) {
 											let ck = (this.files[0].name.match(/jpg|gif|png|jpeg/i)) ? true : false;
 											if(ck){
 												profile=this.files[0].name;
@@ -1454,12 +1520,30 @@ app.page=(()=>{
 											}else{
 												alert("gif,png,jpg,jpeg 파일만 업로드 할 수 있습니다.");
 											}
-										})	
+										}*/
+												)	
 								)
 						)
 						
 				)
-		).appendTo($('table'));
+		).appendTo($('#file_div'));
+		
+	/*
+		
+		<div class="imgup_con">
+			<form enctype="multipart/form-data" id="imgup_form">
+				<div class="imgup_prev">
+					<div id="targetLayer" style="opacity: 0.7;"></div>
+					<div class="imgup">
+						<input type="file" name="find_img" id="find_img" class="inputFile">
+					</div>
+				</div>
+			</form>
+		</div>
+		*/
+		
+		
+		
 		
 	};
 	return{cmtTable:cmtTable

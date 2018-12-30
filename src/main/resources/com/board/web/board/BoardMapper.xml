@@ -51,6 +51,25 @@ FROM	(
 WHERE ROWNUM BETWEEN #{beginRow} AND #{endRow}
 </select>
 
+<!-- 엑셀  -->
+<select id="listExcel"  resultMap="board">
+SELECT ROWNUM, NUM, TITLE, CONTENT, WRITER, PW, REGIDATE, CHECKDELETE	
+		,PARENT, ORD, DEPTH
+FROM	(
+	SELECT @ROWNUM:=@ROWNUM+1 as ROWNUM, T.*
+	FROM (
+		SELECT  A.*
+		FROM T_BOARD A , (SELECT @ROWNUM:=0) R 
+		WHERE ((CHECKDELETE IS NULL AND PARENT IS NULL) OR (PARENT IS NOT NULL))
+		<if test="keyword!='undefined' and keyword!=''">
+			AND (TITLE LIKE CONCAT('%', #{keyword}, '%'))
+		</if>
+		ORDER BY IF(ISNULL(PARENT),NUM,PARENT) DESC, ORD IS NULL DESC, ORD DESC
+		) T
+	) S	
+</select>
+
+
 <select id="detailBoard" resultType="com.board.web.board.Board">
 	SELECT NUM, TITLE, CONTENT, WRITER,PW, REGIDATE 
 		,PARENT, ORD, DEPTH

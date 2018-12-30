@@ -28,4 +28,7 @@ public interface BoardMapper {
 	public int countComments(String p);
 	public void updateComments(Map<?, ?> p);
 	public void deleteComments(Map<?, ?> p);
+	
+	/* Excel */
+	public List<?> listExcel(Map<?, ?> p);
 }
